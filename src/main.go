@@ -1,19 +1,11 @@
 
 package main
 import (
-"driver"
 "net"
 "netmod"
-"fmt"
-"time"
 )
 
-type State struct {
-	IP net.Ip
-    CurFloor string
-    HeisNr string 	 
-    Astring string
-}
+
 
 
 
@@ -21,7 +13,7 @@ func main(){
 	
 	
 	state1 := State{LocalIP() ,"11", "22", "heihei"}
-	Client_map = make(map[State]net.IP)	
+	Client_map = make(map[string]State)	
 
 	go Read_status(Client_map map[State]int)
 	go Send_status(state1 State)

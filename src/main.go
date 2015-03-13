@@ -19,7 +19,7 @@ func main(){
 	go netmod.Read_status(Client_map)
 	go netmod.Send_status(state1)
 	
-	
+	time.Sleep(10*time.Second)
 	
 	/**
 	driver.IoInit()

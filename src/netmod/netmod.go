@@ -38,7 +38,7 @@ func Read_status(Client_map map[State]int) {
 		time.Sleep(1000 * time.Millisecond)
 		b := make([]byte, 1024)
 		n, raddr, _ := status_receiver.ReadFromUDP(b)
-		err_decoding := json.Unmarshal(b[0:n]
+		err_decoding := json.Unmarshal(b[0:n])
 		if err_decoding != nil {
 			fmt.Println("error decoding client msg")
 		}

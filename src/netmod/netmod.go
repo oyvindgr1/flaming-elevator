@@ -42,7 +42,7 @@ func Send_status(state1 State) {
 }
 
 
-func Read_status(Client_map map[int]State) {
+func Read_status(Client_map map[string]State) {
 	laddr, err_conv_ip_listen := net.ResolveUDPAddr("udp", ":20020")
 	if err_conv_ip_listen != nil {
 			fmt.Println("error:", err_conv_ip_listen)
@@ -59,7 +59,7 @@ func Read_status(Client_map map[int]State) {
 		if err_decoding != nil {
 			fmt.Println("error decoding client msg")
 		}
-		Client_map[raddr] = decoded_state
+		Client_map[raddr.String()] = decoded_state
 		
 		for key := range Client_map {
 		    fmt.Println(key.IP.String())

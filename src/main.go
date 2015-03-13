@@ -10,7 +10,7 @@ import (
 
 func main(){
 	
-	var localIP = net.IPv4(129.241.187.153) 
+	var localIP = net.IPv4(129,241,187,153) 
 	state1 := netmod.State{localIP ,"11", "22", "heihei"}
 	Client_map := make(map[string]netmod.State)	
 

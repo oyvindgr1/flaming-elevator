@@ -8,7 +8,7 @@ import (
 )
 
 type State struct {
-	IP net.Ip
+	IP net.IP
     CurFloor string
     HeisNr string 	 
     Astring string

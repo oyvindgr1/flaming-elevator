@@ -14,13 +14,17 @@ type State struct {
     Astring string
 }
 
+var decoded_state State
+
 func Send_status(state1 State) {
 	baddr, err_conv_ip := net.ResolveUDPAddr("udp", "129.241.187.255:20020")
 	if err_conv_ip != nil {
 			fmt.Println("error:", err_conv_ip)
 		}
 	status_sender, err_dialudp := net.DialUDP("udp", nil, baddr)
-	Check_error(err_dialudp)
+	if err_dialup != nil {
+			fmt.Println("error:", err_dialip)
+		}
 	for {
 		time.Sleep(1000 * time.Millisecond)
 		b, err_Json := json.Marshal(state1)
@@ -38,7 +42,7 @@ func Send_status(state1 State) {
 }
 
 
-func Read_status(Client_map map[State]int) {
+func Read_status(Client_map map[int]State) {
 	laddr, err_conv_ip_listen := net.ResolveUDPAddr("udp", ":20020")
 	if err_conv_ip_listen != nil {
 			fmt.Println("error:", err_conv_ip_listen)
@@ -51,11 +55,11 @@ func Read_status(Client_map map[State]int) {
 		time.Sleep(1000 * time.Millisecond)
 		b := make([]byte, 1024)
 		n, raddr, _ := status_receiver.ReadFromUDP(b)
-		err_decoding := json.Unmarshal(b[0:n])
+		err_decoding := json.Unmarshal(b[0:n], &decoded_state)
 		if err_decoding != nil {
 			fmt.Println("error decoding client msg")
 		}
-		Client_map[b] = raddr
+		Client_map[decoded_state] = raddr
 		
 		for key := range m {
 		    fmt.Println(key.IP.String())

@@ -17,10 +17,11 @@ type State struct {
 
 func main(){
 	
-	var state State
+	
+	state1 := State{LocalIP() ,"11", "22", "heihei"}
 	Client_map = make(map[State]net.IP)	
-	
-	
+
+	go 
 	
 	
 	

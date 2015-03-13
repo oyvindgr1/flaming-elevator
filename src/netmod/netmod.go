@@ -32,7 +32,7 @@ func Send_status(state1 State) {
 	        fmt.Println("error with JSON")
 	        fmt.Println(err_Json)
         }
-		err1 := status_sender.Write(b)
+		_, err1 := status_sender.Write(b)
         if err1 != nil {
                 fmt.Println("error writing data to server")
                 fmt.Println(err1)

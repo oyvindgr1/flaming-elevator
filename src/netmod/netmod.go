@@ -61,8 +61,13 @@ func Read_status(Client_map map[string]State) {
 		}
 		Client_map[raddr.String()] = decoded_state
 		
-		for key := range Client_map {
-		    fmt.Println("%s", key.String())
+		for key, _ := range Client_map {
+		    fmt.Println("%s", key)
 		}
 	}
 }
+
+
+
+
+

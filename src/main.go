@@ -21,7 +21,8 @@ func main(){
 	state1 := State{LocalIP() ,"11", "22", "heihei"}
 	Client_map = make(map[State]net.IP)	
 
-	go 
+	go Read_status(Client_map map[State]int)
+	go Send_status(state1 State)
 	
 	
 	

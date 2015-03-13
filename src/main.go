@@ -6,7 +6,25 @@ import (
 "time"
 )
 
+type State struct {
+	IP net.Ip
+    CurFloor string
+    HeisNr string 	 
+    Astring string
+}
+
+
+
 func main(){
+	
+	var state State
+	Client_map = make(map[State]net.IP)	
+	
+	
+	
+	
+	
+	/**
 	driver.IoInit()
 	time.Sleep(2*time.Second)
 	fmt.Printf("Init:\n")
@@ -58,6 +76,8 @@ func main(){
 	time.Sleep(2*time.Second)
 	fmt.Printf("\nButton signal")
 	driver.GetButtonSignal(1,1)
+	
+	*/
 	 
 
 

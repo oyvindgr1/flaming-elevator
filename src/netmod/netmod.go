@@ -22,8 +22,8 @@ func Send_status(state1 State) {
 			fmt.Println("error:", err_conv_ip)
 		}
 	status_sender, err_dialudp := net.DialUDP("udp", nil, baddr)
-	if err_dialup != nil {
-			fmt.Println("error:", err_dialip)
+	if err_dialudp != nil {
+			fmt.Println("error:", err_dialudp)
 		}
 	for {
 		time.Sleep(1000 * time.Millisecond)
@@ -59,9 +59,9 @@ func Read_status(Client_map map[int]State) {
 		if err_decoding != nil {
 			fmt.Println("error decoding client msg")
 		}
-		Client_map[decoded_state] = raddr
+		Client_map[raddr] = decoded_state
 		
-		for key := range m {
+		for key := range Client_map {
 		    fmt.Println(key.IP.String())
 		}
 	}

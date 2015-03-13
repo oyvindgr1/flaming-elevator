@@ -10,8 +10,8 @@ import (
 
 func main(){
 	
-	
-	state1 := netmod.State{LocalIP() ,"11", "22", "heihei"}
+	localIP, _ := LocalIP()
+	state1 := netmod.State{LocalIP ,"11", "22", "heihei"}
 	Client_map := make(map[string]State)	
 
 	go netmod.Read_status(Client_map)

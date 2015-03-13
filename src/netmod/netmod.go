@@ -1,5 +1,11 @@
 
-
+package netmod
+import (
+	"net"
+	"fmt"
+	"time"
+	"encoding/json"
+)
 
 func Send_status(state1 State) {
 	baddr, err_conv_ip := net.ResolveUDPAddr("udp", "129.241.187.255:20020")

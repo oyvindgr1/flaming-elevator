@@ -1,30 +1,31 @@
 
 package main
 import (
-	"net"
-       . "netmod"
-	"time"
+"driver"
+"fmt"
+"time"
 )
 
-
+type State struct {
+	IP net.Ip
+    CurFloor string
+    HeisNr string 	 
+    Astring string
+}
 
 
 
 func main(){
 	
-	var ip = net.IPv4(129,241,187,153)
-	state1 := State{ip, "11", "22", "heihei"}
-	Client_map := make(map[string]State)
-		
-
-	go Read_status(Client_map)
-	go Send_status(state1)
+	var state State
+	Client_map = make(map[State]net.IP)	
 	
 	
-	time.Sleep(10*time.Second)
 	
-/**	driver.IoInit()
-
+	
+	
+	/**
+	driver.IoInit()
 	time.Sleep(2*time.Second)
 	fmt.Printf("Init:\n")
 	driver.Init()

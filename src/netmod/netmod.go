@@ -7,6 +7,13 @@ import (
 	"encoding/json"
 )
 
+type State struct {
+	IP net.Ip
+    CurFloor string
+    HeisNr string 	 
+    Astring string
+}
+
 func Send_status(state1 State) {
 	baddr, err_conv_ip := net.ResolveUDPAddr("udp", "129.241.187.255:20020")
 	if err_conv_ip != nil {

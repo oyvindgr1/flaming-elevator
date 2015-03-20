@@ -10,7 +10,7 @@ import (
 
 
 
-func Send_status(state1 State) {
+func Send_status(status_chan chan State) {
 	baddr, err_conv_ip := net.ResolveUDPAddr("udp", "129.241.187.255:20020")
 	if err_conv_ip != nil {
 			fmt.Println("error:", err_conv_ip)
@@ -20,20 +20,25 @@ func Send_status(state1 State) {
 			fmt.Println("error:", err_dialudp)
 		}
 	for {
-		time.Sleep(1000 * time.Millisecond)
-		b, err_Json := json.Marshal(state1)
-        if err_Json != nil {
-	        fmt.Println("error with JSON")
-	        fmt.Println(err_Json)
-        }
-		_, err1 := status_sender.Write(b)
-        if err1 != nil {
-                fmt.Println("error writing data to server")
-                fmt.Println(err1)
-                return
-        }
+		select {
+		case status := <-status_chan:
+			time.Sleep(1000 * time.Millisecond)
+			b, err_Json := json.Marshal(state1)
+        		if err_Json != nil {
+			        fmt.Println("error with JSON")
+			        fmt.Println(err_Json)
+        		}
+			_, err1 := status_sender.Write(b)
+		        if err1 != nil {
+                		fmt.Println("error writing data to server")
+                		fmt.Println(err1)
+       			         return
+       			 }
+		default:
+		}
 	}
 }
+
 
 
 func Read_status(Client_map map[string]State) {

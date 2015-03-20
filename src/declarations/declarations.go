@@ -12,12 +12,13 @@ type State struct {
 	Astring string
 	Floor int
 	Dir int
-	OrderStruct Order 
+	OrderInformation Order 
 }
 
 const N_BUTTONS = 3
 const N_FLOORS = 4
 
+//ORDER_UP = 0, ORDER_DOWN = 1, ORDER_INTERNAL = 2
 type Order struct {
 	Floor int
 	Dir int

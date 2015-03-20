@@ -1,0 +1,37 @@
+package order
+
+import(
+	. "declarations"
+	
+)
+
+/*type Order_struct struct{
+	IP string
+	Orders map[string][N_FLOORS][N_BUTTON]bool
+	
+} */
+
+func Init() {
+
+
+	//orderList := make(map[string][N_FLOORS][N_BUTTON]bool)
+
+	//Order_struct =
+	orderChannel = make(chan ordersToExecute) 
+}
+
+func OrderListener(listenerChan chan [N_FLOOR][N_BUTTONS]bool ) {
+	
+	for{
+		select{
+			case: localButtonPress := <-listenerChan
+					
+			case: fromNetworkOrder := <-orderChan 
+
+				
+
+		}
+	}	
+	
+
+}

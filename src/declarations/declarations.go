@@ -5,6 +5,8 @@ import (
 
 )
 
+
+
 type State struct {
 	IP net.IP
 	CurFloor string
@@ -12,7 +14,8 @@ type State struct {
 	Astring string
 	Floor int
 	Dir int
-	OrderInformation Order 
+	UnprocessedOrders []Order
+	OrdersToExecute []Order  
 }
 
 const N_BUTTONS = 3
@@ -23,6 +26,8 @@ type Order struct {
 	Floor int
 	Dir int
 }
+
+var UnprocessedOrders []Order
 
 var lampChannelMatrix= [N_FLOORS][N_BUTTONS]int{
 	{LIGHT_UP1, LIGHT_DOWN1, LIGHT_COMMAND1},

@@ -21,7 +21,7 @@ func Send_status(status_chan chan State) {
 		}
 	for {
 		select {
-		case status := <- status_chan:
+		case status := <-status_chan:
 			time.Sleep(1000 * time.Millisecond)
 			b, err_Json := json.Marshal(state1)
         		if err_Json != nil {
@@ -35,8 +35,10 @@ func Send_status(status_chan chan State) {
        			         return
        			 }
 		default:
+		}
 	}
 }
+
 
 
 func Read_status(Client_map map[string]State) {

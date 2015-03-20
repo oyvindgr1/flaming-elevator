@@ -4,14 +4,20 @@ import (
 	"net"
        . "netmod"
 	"time"
+	. "driver"
 )
 
 
 
-
+func Order_listener(){
+	
+}
 
 func main(){
-	
+	orderExternal := make(chan Order, 1)
+	orderInternal := make(chan Order, 1)
+	go OrderListener()	
+
 	var ip = net.IPv4(129,241,187,153)
 	state1 := State{ip, "11", "22", "heihei"}
 	Client_map := make(map[string]State)
@@ -23,6 +29,46 @@ func main(){
 	
 	time.Sleep(10*time.Second)
 	
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 /**	driver.IoInit()
 
 	time.Sleep(2*time.Second)

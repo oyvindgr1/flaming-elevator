@@ -12,6 +12,9 @@ type State struct {
 	CurFloor string
 	HeisNr string 	 
 	Astring string
+	Floor int
+	Dir int
+	OrderStruct Order 
 }
 
 func Send_status(state1 State) {

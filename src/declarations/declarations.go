@@ -1,5 +1,10 @@
 package declarations
 
+import (
+	"net"
+
+)
+
 type State struct {
 	IP net.IP
 	CurFloor string

@@ -1,4 +1,4 @@
-package declarations
+package elevtypes
 
 import (
 	"net"

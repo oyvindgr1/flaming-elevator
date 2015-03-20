@@ -1,0 +1,19 @@
+package declarations
+
+type State struct {
+	IP net.IP
+	CurFloor string
+	HeisNr string 	 
+	Astring string
+	Floor int
+	Dir int
+	OrderStruct Order 
+}
+
+const N_BUTTONS = 3
+const N_FLOORS = 4
+
+type Order struct {
+	Floor int
+	Dir int
+}

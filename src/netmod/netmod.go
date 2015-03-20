@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 	"encoding/json"
-	"declarations"
+	"elevtypes"
 )
 
 

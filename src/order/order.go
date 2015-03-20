@@ -1,7 +1,7 @@
 package order
 
 import(
-	. "declarations"
+	. "elevtypes"
 	"driver"
 	"time"
 	

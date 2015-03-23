@@ -2,6 +2,8 @@ package statemachine
 
 import(
 	"driver"
+	"time"
+	"fmt"
 	
 	
 )
@@ -13,17 +15,17 @@ const(
 )
 
 func ElevatorInit() {
-	if driver.ElevInit() == 0 {
+	if driver.Init() == 0 {
 		return 0
 	} else {
-		if driver.ElevGetFloorSensorSignal() != -1 {
+		if driver.GetFloorSensorSignal() != -1 {
 		} else {
-			driver.ElevSetSpeed(Downwards*300)
-			floor := driver.ElevGetFloorSensorSignal()
+			driver.SetSpeed(Downwards*300)
+			floor := driver.GetFloorSensorSignal()
 			for floor == -1 {
-				floor = driver.ElevGetFloorSensorSignal()
+				floor = driver.GetFloorSensorSignal()
 			}
-			ElevatorBrake()
+			ElevatorBrake(Upwards)
 		}
 		fmt.Printf("Initialized\n")
 		return 1
@@ -33,9 +35,10 @@ func ElevatorInit() {
 func EventHandler() {
 }
 
-func ElevatorBrake() {
-	driver.ElevSetSpeed(Upwards*300)
-	time.After(time.Millisecond*20)
+func ElevatorBrake(dir int) {
+	driver.SetSpeed(dir*300)
+	time.Sleep(time.Millisecond*20)
+	driver.SetSpeed(0)
 }
 	
 	

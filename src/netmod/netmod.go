@@ -1,5 +1,5 @@
 
-package netmod
+package network
 import (
 	"net"
 	"fmt"
@@ -10,7 +10,7 @@ import (
 
 
 
-func Send_status(status_chan chan State) {
+func SendInfo(status_chan chan State) {
 	baddr, err_conv_ip := net.ResolveUDPAddr("udp", "129.241.187.255:20020")
 	if err_conv_ip != nil {
 			fmt.Println("error:", err_conv_ip)
@@ -41,7 +41,7 @@ func Send_status(status_chan chan State) {
 
 
 
-func Read_status(Client_map map[string]State) {
+func ReadInfo(Client_map map[string]State) {
 	var m State
 	laddr, err_conv_ip_listen := net.ResolveUDPAddr("udp", ":20020")
 	if err_conv_ip_listen != nil {

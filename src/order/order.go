@@ -1,7 +1,7 @@
 package order
 
 import(
-	. "elevtypes"
+	"elevtypes"
 	"driver"
 	"time"
 	
@@ -13,7 +13,7 @@ import(
 	
 } */
 
-func OrderListener(orderExternal chan Order, orderInternal chan Order) {
+func OrderListener(orders_local_elevator chan Order, ) {
 	var newOrder Order
 	var ButtonMatrix [N_FLOORS][N_BUTTONS]bool
 
@@ -27,9 +27,9 @@ func OrderListener(orderExternal chan Order, orderInternal chan Order) {
 					if ButtonMatrix[i][j] == 1 {
 						newOrder = Order{i, j}
 						if j == 2 {
-							orderInternal <- newOrder
+							orders_local_elevator <- newOrder
 						} else {
-							orderExternal <- newOrder
+							orders_local_elevator <- newOrder
 						}	
 					}
 				}

@@ -27,7 +27,7 @@ type Order struct {
 	Dir int
 }
 
-var UnprocessedOrders []Order
+//var UnprocessedOrders []Order
 
 var lampChannelMatrix= [N_FLOORS][N_BUTTONS]int{
 	{LIGHT_UP1, LIGHT_DOWN1, LIGHT_COMMAND1},

@@ -16,7 +16,7 @@ const(
 const (
 	FLOOR_REACHED Event_enum = iota
 	NEW_ORDER
-	NEW_DIRECTION
+	NO_ORDERS
 )
 	
 func ElevatorInit() {
@@ -41,7 +41,7 @@ func ElevatorInit() {
 func StateMachine(current_order chan Order, previous_order chan Order, delete_order chan Order, state_chan chan State_enum, button_update_channel chan[N_BUTTONS][N_FLOORS]bool) {	
 	var cur_order Order
 	var prev_order Order
-	get_previous_floor_chan := make(chan Order, 1)
+	previous_floor_chan := make(chan Order, 1)
 	delete_order_chan := make(chan Order, 1)
 	state_update_chan := make(chan State_t, 1)
 	var ButtonMatrix [N_BUTTONS][N_FLOORS]bool
@@ -60,7 +60,7 @@ func StateMachine(current_order chan Order, previous_order chan Order, delete_or
 				state_c <- new_state
 			}
 		}
-	}();
+	}()
 
 	go func () {
 		var state State_enum
@@ -69,22 +69,17 @@ func StateMachine(current_order chan Order, previous_order chan Order, delete_or
 			time.Sleep(10 * time.Millisecond)
 			switch event {
 			case NEW_ORDER:
-				event = Elevator_run(state_update_c, get_prev_floor_c, &state, head_order)
+				event = Elevator_run(prev_floor_chan, state_update_chan, cur_order, &state)
 			case FLOOR_REACHED:
-				event = Elevator_door(state_update_c, &state)
+				event = Elevator_door(state_update_chan, &state)
 			case NO_ORDERS:
-				event = Elevator_wait(state_update_c, &state)
-
-				
+				event = Elevator_wait(state_update_chan, &state)
 		}
-	}();
+	}()
 }
-
 
 func ElevatorBrake(dir int) {
 	driver.SetSpeed(dir*300)
 	time.Sleep(time.Millisecond*20)
 	driver.SetSpeed(0)
 }
-	
-	

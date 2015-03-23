@@ -11,11 +11,12 @@ import (
 
 
 
-func SendInfo(status_chan chan State) {
+
+func SendInfo(status_chan <-chan elevtypes.Message) {
 	baddr, err_conv_ip := net.ResolveUDPAddr("udp", "129.241.187.255:20020")
 	if err_conv_ip != nil {
 			fmt.Println("error:", err_conv_ip)
-		}
+			}
 	status_sender, err_dialudp := net.DialUDP("udp", nil, baddr)
 	if err_dialudp != nil {
 			fmt.Println("error:", err_dialudp)
@@ -29,38 +30,49 @@ func SendInfo(status_chan chan State) {
 			        fmt.Println("error with JSON")
 			        fmt.Println(err_Json)
         		}
-			_, err1 := status_sender.Write(b)
-		        if err1 != nil {
-                		fmt.Println("error writing data to server")
-                		fmt.Println(err1)
-       			        return
-       			 }
+			for i := 0; i < 4; i++ {
+				_, err1 := status_sender.Write(b)
+			        if err1 != nil {
+	                		fmt.Println("Error writing data to server. Waiting for 10 seconds before sending again.")
+	                		time.Sleep(10*time.Second)
+	                		fmt.Println(err1)
+	       			        break
+	       			 }
+			}
 		}
 	}
 }
 
 
-func ReadInfo(Client_map map[string]State, netIsAlive chan<- bool) {
-	var m State
+func ReadInfo(status_chan chan<- elevtypes.Message, netIsAlive chan<- bool) {
+	var msg elevtypes.Message
+	b := make([]byte, 1024)
 	laddr, err_conv_ip_listen := net.ResolveUDPAddr("udp", ":20020")
+	addr, err := net.ResolveUDPAddr("udp", getIP()+NetworkPort
+	if err_ != nil {
+			fmt.Println("error:", err)
+			netIsAlive <- false
+			return
+		}
 	if err_conv_ip_listen != nil {
 			fmt.Println("error:", err_conv_ip_listen)
 			netIsAlive <- false
+			return
 		}
 	status_receiver, err_listen := net.ListenUDP("udp", laddr)
 	if err_listen != nil {
 			fmt.Println("error:", err_listen)
 			netIsAlive <- false
+			return
 		}
 	for {
 		time.Sleep(1000 * time.Millisecond)
-		b := make([]byte, 1024)
 		n, raddr, _ := status_receiver.ReadFromUDP(b)
-		err_decoding := json.Unmarshal(b[0:n], &m)
+		err_decoding := json.Unmarshal(b[0:n], &msg)
 		if err_decoding != nil {
 			fmt.Println("error decoding client msg")
 		}
-		Client_map[raddr.String()] = m;
+		Client_map[raddr.String()] = msg;
 		
 		for key := range Client_map {
 		    fmt.Println("%s", key)

@@ -6,6 +6,7 @@ import (
 	"time"
 	"encoding/json"
 	"elevtypes"
+	"strings"
 )
 
 
@@ -32,13 +33,11 @@ func SendInfo(status_chan chan State) {
 		        if err1 != nil {
                 		fmt.Println("error writing data to server")
                 		fmt.Println(err1)
-       			         return
+       			        return
        			 }
-		default:
 		}
 	}
 }
-
 
 
 func ReadInfo(Client_map map[string]State) {
@@ -64,5 +63,15 @@ func ReadInfo(Client_map map[string]State) {
 		for key := range Client_map {
 		    fmt.Println("%s", key)
 		}
+	}
+}
+
+func getIP() string {
+	conn, err := net.Dial("udp", "google.com:80")
+	if err != nil {
+		fmt.Printf("Error with dialing Google.com", err)
+		return "localhost"
+	} else {
+		return strings.Split(string(conn.LocalAddr().String()), ":")[0]
 	}
 }

@@ -2,29 +2,26 @@
 package main
 import (
 	"net"
-       . "netmod"
+        "network"
 	"time"
-	. "driver"
+	"driver"
 )
 
 
 
-func Order_listener(){
-	
-}
 
 func main(){
 	orderExternal := make(chan Order, 1)
 	orderInternal := make(chan Order, 1)
-	go OrderListener()	
+	
 
 	var ip = net.IPv4(129,241,187,153)
 	state1 := State{ip, "11", "22", "heihei"}
 	Client_map := make(map[string]State)
 		
 
-	go Read_status(Client_map)
-	go Send_status(state1)
+	go network.ReadInfo(Client_map)
+	go network.SendInfo(state1)
 	
 	
 	time.Sleep(10*time.Second)

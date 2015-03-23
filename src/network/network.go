@@ -40,15 +40,17 @@ func SendInfo(status_chan chan State) {
 }
 
 
-func ReadInfo(Client_map map[string]State) {
+func ReadInfo(Client_map map[string]State, netIsAlive chan<- bool) {
 	var m State
 	laddr, err_conv_ip_listen := net.ResolveUDPAddr("udp", ":20020")
 	if err_conv_ip_listen != nil {
 			fmt.Println("error:", err_conv_ip_listen)
+			netIsAlive <- false
 		}
 	status_receiver, err_listen := net.ListenUDP("udp", laddr)
 	if err_listen != nil {
 			fmt.Println("error:", err_listen)
+			netIsAlive <- false
 		}
 	for {
 		time.Sleep(1000 * time.Millisecond)

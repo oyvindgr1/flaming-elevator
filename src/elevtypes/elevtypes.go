@@ -5,9 +5,21 @@ import (
 
 )
 
+const (
+	NewOrderType MessageType  = iota
+	DeleteOrderType
+	CostType
+	AddOrderType
+)
+
+type Message struct {
+	Message MessageType 
+	OrderInfo Order
+	Cost int
+}
 
 
-type State struct {
+/*type State struct {
 	IP net.IP
 	CurFloor string
 	HeisNr string 	 
@@ -16,7 +28,7 @@ type State struct {
 	Dir int
 	UnprocessedOrders []Order
 	OrdersToExecute []Order  
-}
+}*/
 
 const N_BUTTONS = 3
 const N_FLOORS = 4

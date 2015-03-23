@@ -13,11 +13,11 @@ import(
 	
 } */
 
-func OrderListener(orders_local_elevator chan Order, ) {
+func OrderListener(orders_local_elevator chan Order, reset_button chan Order, reset_all chan bool ) {
 	var newOrder Order
 	var ButtonMatrix [N_FLOORS][N_BUTTONS]bool
 
-
+	
 	go func() {
 		for {
 			time.Sleep(15 * time.Millisecond)
@@ -35,17 +35,35 @@ func OrderListener(orders_local_elevator chan Order, ) {
 				}
 			}
 		}
-	}
+	}()
+
+
+	go func() {
+		for {
+			select {
+			case resetAll := <- reset_all:
+				for i := 0; i < N_FLOORS; i++ {
+						list[ORDER_DOWN][i] = false
+						list[ORDER_UP][i] = false
+					}
+			case resetFloor := <- reset_button:
+				ButtonMatrix[resetFloor.Dir][resetFloor.Floor] = false
+			}
+		}
+	}()
 }
 
-//func Init() {
+		
 
 
-	//orderList := make(map[string][N_FLOORS][N_BUTTON]bool)
+/*func Init() {
 
-	//Order_struct =
-	//orderChannel = make(chan ordersToExecute) 
-//}
+
+	orderList := make(map[string][N_FLOORS][N_BUTTON]bool)
+
+	Order_struct =
+	orderChannel = make(chan ordersToExecute) 
+}
 
 func UnprocessedOrderListGenerator( OrderMatrix [][]bool) {
 

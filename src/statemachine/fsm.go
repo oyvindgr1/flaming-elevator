@@ -79,68 +79,7 @@ func StateMachine(current_order chan Order, previous_order chan Order, delete_or
 		}
 	}();
 }
-/*
-func Elvator_wait(state_update_c chan State_t, state *State_t) {
-	if *state != WAIT {
-		*state = WAIT
-		state_update_c <- RUN
-	}
-	return NO_ORDERS
-}
 
-func Elevator_run(state_update_c chan State_t, get_prev_floor_c chan Order, state *State_t, head_order Order) {
-	if *state != RUN {
-		*state = RUN
-		driver.Elev_set_speed(300 * head_order.Dir)
-		state_update_c <- RUN
-	}
-	current_floor := driver.Elev_get_floor_sensor_signal()
-	if current_floor != -1 {
-		var current Order
-		current.Floor = current_floor
-		current.Dir = head_order.Dir
-		get_prev_floor_c <- current
-		driver.Elev_set_floor_indicator(current_floor)
-		if current_floor == head_order.Floor {
-			Elevator_break(head_order.dir)
-			return FLOOR_REACHED
-		}
-	}
-	if current_floor == head_order.Floor {
-		Elevator_break(head_order.Dir)
-		return FLOOR_REACHED
-	}
-	if driver.Elev_get_stop_signal() {
-		Elevator_break(head_order.Dir)
-		return STOP
-	}
-	if driver.Elev_get_obstruction_signal() {
-		Elevator_break(head_order.Dir)
-		return OBSTRUCTION
-	}
-	return NEW_ORDER
-}
-
-func Elevator_door(state_update_c chan State_t, state *State_t) {
-	if driver.Elev_get_floor_sensor_signal() != -1 {
-		if *state != DOOR {
-			*state = DOOR
-			state_update_c <- DOOR
-			driver.Elev_set_door_open_lamp(1)
-		}
-		time.Sleep(3000 * time.Millisecond)
-		if driver.Elev_get_obstruction_signal() {
-			return DOOR
-		}
-		if driver.Elev_get_stop_signal() {
-			return STOP
-		}
-		driver.Elev_set_door_open_lamp(0)
-		return NEW_ORDER
-	}else {
-		return UNDEF
-	}
-}*/
 
 func ElevatorBrake(dir int) {
 	driver.SetSpeed(dir*300)

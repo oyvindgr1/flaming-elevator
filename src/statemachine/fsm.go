@@ -17,12 +17,14 @@ const (
 	FLOOR_REACHED Event_enum = iota
 	NEW_ORDER
 	NO_ORDERS
+	UNDEFINED
 )
 
 const (
 	Running State_enum = iota
 	Idle 
-	atFloor
+	Door
+	Undefined
 )
 	
 func ElevatorInit() {
@@ -77,6 +79,8 @@ func StateMachine(current_order <-chan Order, previous_order <-chan Order, delet
 				event = door(state_update_chan, &state)
 			case NO_ORDERS:
 				event = wait(state_update_chan, &state)
+			case UNDEFINED:
+				event = undefined(state_update_chan, &state)
 		}
 	}()
 }
@@ -92,17 +96,50 @@ func run(thisOrder Order,................) {
 		selfOrder := Order{}
 		selfOrder.Dir = thisOrder.Dir
 		selfOrder.Floor = cur_floor
-		previous_floor_chan
-
- 	
-}
+		previous_floor_chan <- selfOrder
+		driver.SetLightFloorIndicator(cur_floor)
+		if cur_floor == thisOrder.Floor {
+			ElevatorBrake(thisOrder.Dir)
+			return FLOOR_REACHED
+		}
+	if cur_floor == thisOrder.Floor {
+		ElevatorBrake(thisOrder.Floor)
+		return FLOOR_REACHED
+		}
+	}
+	return NEW_ORDER
+ }
 
 func wait(...........) {
-
+	if *state != Idle {
+		*state = Idle
+		state_update_chan <- Running
+	}
+	return NO_ORDERS
 }
 
 func door(.............) {
+	if driver.GetFloorSensorSignal() != -1 {
+		if *state != Door {
+			*state = Door
+			state_update_chan <- Door
+			driver.SetDoorOpenLamp(1)
+		}
+		time.Sleep(3*time.Second)
+		driver.SetDoorOpenLamp(0)
+		return NEW_ORDER
+	} else {
+		return UNDEFINED
+	}
 
+}
+
+func undefined(.....)
+	if *state != Undefined {
+		*state = Undefined
+		state_update_chan <- Undefined
+	}
+	return UNDEFINED
 }
 
 func ElevatorBrake(dir int) {

@@ -1,33 +1,64 @@
 
 package main
 import (
-	"net"
         "network"
 	"time"
 	"driver"
+	"order"
+	"fmt"
+	"elevtypes"
 )
 
 
 
 
 func main(){
-	orderExternal := make(chan Order, 1)
-	orderInternal := make(chan Order, 1)
-	statusmap_chan := make(chan map[string]Status,1)
+	statusmap_chan := make(chan map[string]elevtypes.Status,1)
+	status_chan := make(chan elevtypes.Status,1)
 	
+	orders_local_elev_chan := make(chan elevtypes.Order, 1)
 	
+		
 	netIsAlive	:= make(chan bool)
 	
 
-	var ip = net.IPv4(129,241,187,153)
-	state1 := State{ip, "11", "22", "heihei"}
+	//var ip = net.IPv4(129,241,187,153)
+	state1 := Status{1, 1,nil , nil,2}
+	init := driver.Init()
+	fmt.Printf("Driver initiated: %d\n", init)
+	go func() {
+		for {
+			select {
+			case status_chan <- state1:
+			}
+		}
+	}()
+		
+	go network.ReadStatus(statusmap_chan, netIsAlive)
+	go network.SendStatus(status_chan)
 	
+	go order.OrderListener(orders_local_elev_chan)
+	
+	go func() {
+		for {
+			select {
+			case newOrder := <-orders_local_elev_chan:
+				fmt.Printf("Floor of new order: %d, Type of new order: %d\n", newOrder.Floor, newOrder.Dir)
+			}
+		}
+	}()
+	
+	go func() {
+		for {
+			select{
+			case aBool := <- netIsAlive:
+				fmt.Printf(" Net alive: %t", aBool)
+			}
+		}
+	}()
 
-	go network.ReadInfo(statusmap_chan, netIsAlive)
-	go network.SendInfo(state1)
 	
-	
-	time.Sleep(10*time.Second)
+	time.Sleep(1000*time.Second)
 	
 
 

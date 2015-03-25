@@ -16,7 +16,19 @@ const (
 	ORDER_DOWN
 	ORDER_INTERNAL
 )*/
+var lampChannelMatrix= [elevtypes.N_FLOORS][elevtypes.N_BUTTONS]int{
+	{LIGHT_UP1, LIGHT_DOWN1, LIGHT_COMMAND1},
+	{LIGHT_UP2, LIGHT_DOWN2, LIGHT_COMMAND2},
+	{LIGHT_UP3, LIGHT_DOWN3, LIGHT_COMMAND3},
+	{LIGHT_UP4, LIGHT_DOWN4, LIGHT_COMMAND4},
+}
 
+var buttonChannelMatrix = [elevtypes.N_FLOORS][elevtypes.N_BUTTONS]int{
+	{BUTTON_UP1, BUTTON_DOWN1, BUTTON_COMMAND1},
+	{BUTTON_UP2, BUTTON_DOWN2, BUTTON_COMMAND2},
+	{BUTTON_UP3, BUTTON_DOWN3, BUTTON_COMMAND3},
+	{BUTTON_UP4, BUTTON_DOWN4, BUTTON_COMMAND4},
+}	
 
 
 
@@ -31,7 +43,7 @@ func Init() int {
 		if i != 0 {
 			SetButtonLamp(1, i, 0)
 		}
-		if i != N_FLOORS-1 {
+		if i != elevtypes.N_FLOORS-1 {
 			SetButtonLamp(0, i, 0)
 		}
 		SetButtonLamp(2, i, 0)
@@ -60,7 +72,7 @@ func SetDoorOpenLamp(i int) {
 
 func GetButtonSignal(dir int, floor int) int {
 	// Need error handling before proceeding$
-	if Read_bit(elevtypes.buttonChannelMatrix[floor][dir]) {
+	if Read_bit(buttonChannelMatrix[floor][dir]) {
 		return 1
 	} else {
 		return 0
@@ -93,9 +105,9 @@ func SetButtonLamp(dir int, floor int, val int) {
 			return
 		}*/
 	if val == 1 {
-		Set_bit(elevtypes.lampChannelMatrix[floor][dir])		
+		Set_bit(lampChannelMatrix[floor][dir])		
 	} else {
-		Clear_bit(elevtypes.lampChannelMatrix[floor][dir])
+		Clear_bit(lampChannelMatrix[floor][dir])
 	} 
 	/*} else {
 		fmt.Printf("Floor and direction is out of bounds")

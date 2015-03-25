@@ -12,7 +12,7 @@ import (
 
 
 
-func SendInfo(status_send_chan <-chan elevtypes.Status) {
+func SendStatus(status_send_chan <-chan elevtypes.Status) {
 	baddr, err_conv_ip := net.ResolveUDPAddr("udp", "129.241.187.255:20020")
 	if err_conv_ip != nil {
 			fmt.Println("error:", err_conv_ip)
@@ -25,7 +25,7 @@ func SendInfo(status_send_chan <-chan elevtypes.Status) {
 		select {
 		case status := <-status_send_chan:
 			time.Sleep(1000 * time.Millisecond)
-			b, err_Json := json.Marshal(state1)
+			b, err_Json := json.Marshal(status)
         		if err_Json != nil {
 			        fmt.Println("error with JSON")
 			        fmt.Println(err_Json)
@@ -44,8 +44,9 @@ func SendInfo(status_send_chan <-chan elevtypes.Status) {
 }
 
 
-func ReadInfo(statusmap_send_chan <-chan map[string]Status, netIsAlive chan<- bool) {
-	var statusMap map[string]Status
+func ReadStatus(statusmap_send_chan chan<- map[string]elevtypes.Status, netIsAlive chan<- bool) {
+	var statusMap map[string]elevtypes.Status
+	var msg elevtypes.Status
 	b := make([]byte, 1024)
 	laddr, err_conv_ip_listen := net.ResolveUDPAddr("udp", ":20020")
 	//addr, err := net.ResolveUDPAddr("udp", getIP()+NetworkPort
@@ -82,7 +83,7 @@ func ReadInfo(statusmap_send_chan <-chan map[string]Status, netIsAlive chan<- bo
 		}
 	}()
 	
-	go func() {	
+	go func(){
 		for {
 			select {
 			case statusmap_send_chan <- statusMap:

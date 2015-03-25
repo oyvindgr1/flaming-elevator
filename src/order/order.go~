@@ -4,6 +4,7 @@ import(
 	"elevtypes"
 	"driver"
 	"time"
+//	"fmt"
 	
 )
 
@@ -12,31 +13,32 @@ import(
 	Orders map[string][N_FLOORS][N_BUTTON]bool
 	
 } */
-
-func OrderListener(orders_local_elevator chan Order, reset_button chan Order, reset_all chan bool ) {
-	var newOrder Order
-	var ButtonMatrix [N_FLOORS][N_BUTTONS]bool
+//, reset_button chan Order, reset_all chan bool 
+func OrderListener(orders_local_elevator_chan <-chan elevtypes.Order) {
+	var newOrder elevtypes.Order
+	var ButtonMatrix [elevtypes.N_FLOORS][elevtypes.N_BUTTONS]int
 
 	
 	go func() {
 		for {
 			time.Sleep(15 * time.Millisecond)
-			for i := 0; i < N_FLOORS; i++ { 
-				for j := 0; j < N_BUTTONS; j++ {
-					ButtonMatrix[i][j] = GetButtonSignal(j, i)
+			for i := 0; i < elevtypes.N_FLOORS; i++ { 
+				for j := 0; j < elevtypes.N_BUTTONS; j++ {
+					ButtonMatrix[i][j] = driver.GetButtonSignal(j, i)
 					if ButtonMatrix[i][j] == 1 {
-						newOrder = Order{i, j}
+						newOrder = elevtypes.Order{i, j}
 						if j == 2 {
-							orders_local_elevator <- newOrder
+							orders_local_elevator_chan <- newOrder
 						} else {
-							orders_local_elevator <- newOrder
+							orders_local_elevator_chan <- newOrder
 						}	
 					}
 				}
 			}
 		}
 	}()
-
+}
+/*
 
 	go func() {
 		for {
@@ -51,12 +53,11 @@ func OrderListener(orders_local_elevator chan Order, reset_button chan Order, re
 			}
 		}
 	}()
-}
 
 		
 
 
-/*func Init() {
+func Init() {
 
 
 	orderList := make(map[string][N_FLOORS][N_BUTTON]bool)
@@ -73,4 +74,4 @@ func UnprocessedOrderListGenerator( OrderMatrix [][]bool) {
 	
 	
 
-}
+}*/

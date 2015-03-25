@@ -18,12 +18,6 @@ const (
 	NEW_ORDER
 	NO_ORDERS
 )
-
-const (
-	Running State_enum = iota
-	Idle 
-	atFloor
-)
 	
 func ElevatorInit() {
 	init = driver.Init()
@@ -44,7 +38,7 @@ func ElevatorInit() {
 	}
 }
 
-func StateMachine(current_order <-chan Order, previous_order <-chan Order, delete_order <-chan Order, state_chan <-chan State_enum, button_update_channel <-chan[N_BUTTONS][N_FLOORS]bool) {	
+func StateMachine(current_order chan Order, previous_order chan Order, delete_order chan Order, state_chan chan State_enum, button_update_channel chan[N_BUTTONS][N_FLOORS]bool) {	
 	var cur_order Order
 	var prev_order Order
 	previous_floor_chan := make(chan Order, 1)
@@ -72,37 +66,13 @@ func StateMachine(current_order <-chan Order, previous_order <-chan Order, delet
 			time.Sleep(10 * time.Millisecond)
 			switch event {
 			case NEW_ORDER:
-				event = run(prev_floor_chan, state_update_chan, cur_order, &state)
+				event = Elevator_run(prev_floor_chan, state_update_chan, cur_order, &state)
 			case FLOOR_REACHED:
-				event = door(state_update_chan, &state)
+				event = Elevator_door(state_update_chan, &state)
 			case NO_ORDERS:
-				event = wait(state_update_chan, &state)
+				event = Elevator_wait(state_update_chan, &state)
 		}
 	}()
-}
-
-func run(thisOrder Order,................) {
-	if *state != Running {
-		*state = Running
-		driver.SetSpeed(300 * thisOrder.Dir)
-		state_update_chan <- Running	
-	}
-	cur_floor = driver.GetFloorSensorSignal()
-	if cur_floor != -1 {
-		selfOrder := Order{}
-		selfOrder.Dir = thisOrder.Dir
-		selfOrder.Floor = cur_floor
-		previous_floor_chan
-
- 	
-}
-
-func wait(...........) {
-
-}
-
-func door(.............) {
-
 }
 
 func ElevatorBrake(dir int) {

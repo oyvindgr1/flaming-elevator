@@ -50,14 +50,11 @@ func StateMachine(current_order chan Order, previous_order chan Order, delete_or
 	go func () {
 		for {
 			select {
-			case local_list = <- update_local_list_c:
-			case head_order = <-head_order_c:
-			case prev_order = <-get_prev_floor_c:
-				prev_order_c <- prev_order
-			case del_req := <-delete_order:
-				del_order <- del_req
-			case new_state := <-state:
-				state_c <- new_state
+			case 
+			case 
+			case 
+			case 
+		
 			}
 		}
 	}()

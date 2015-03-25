@@ -45,7 +45,8 @@ func SendStatus(status_send_chan <-chan elevtypes.Status) {
 
 
 func ReadStatus(statusmap_send_chan chan<- map[string]elevtypes.Status, netIsAlive chan<- bool) {
-	var statusMap map[string]elevtypes.Status
+	var statusMap map[string]elevtypes.Status	
+	statusMap = make(map[string]elevtypes.Status)
 	var msg elevtypes.Status
 	b := make([]byte, 1024)
 	laddr, err_conv_ip_listen := net.ResolveUDPAddr("udp", ":20020")
@@ -78,12 +79,18 @@ func ReadStatus(statusmap_send_chan chan<- map[string]elevtypes.Status, netIsAli
 					fmt.Println("Error decoding client msg")
 				} else {
 					statusMap[raddr.String()] = msg
+					for key, _ := range statusMap {
+						fmt.Println("IP: %s\n", key)
+						for i, _ := range statusMap[key].UnprocessedOrders {
+							fmt.Printf("Order floor: %d, Order type: %d\n",statusMap[key].UnprocessedOrders[i].Floor, statusMap[key].UnprocessedOrders[i].Dir)
+						}
+					}
 				}
 			}
 		}
 	}()
 	
-	go func(){
+	go func() {
 		for {
 			select {
 			case statusmap_send_chan <- statusMap:

@@ -4,7 +4,7 @@ import(
 	"elevtypes"
 	"driver"
 	"time"
-//	"fmt"
+	"fmt"
 	
 )
 
@@ -14,22 +14,29 @@ import(
 	
 } */
 //, reset_button chan Order, reset_all chan bool 
-func OrderListener(orders_local_elevator_chan <-chan elevtypes.Order) {
+func OrderListener(orders_local_elevator_chan chan<- elevtypes.Order) {
 	var newOrder elevtypes.Order
 	var ButtonMatrix [elevtypes.N_FLOORS][elevtypes.N_BUTTONS]int
-
+	
+	for x := 0; x < elevtypes.N_FLOORS - 1; x++ { 
+				for y := 0; y < elevtypes.N_BUTTONS - 1; y++ {
+					ButtonMatrix[x][y] = 0
+				}
+	}
 	
 	go func() {
 		for {
 			time.Sleep(15 * time.Millisecond)
-			for i := 0; i < elevtypes.N_FLOORS; i++ { 
-				for j := 0; j < elevtypes.N_BUTTONS; j++ {
+			for i := 0; i < elevtypes.N_FLOORS - 1; i++ { 
+				for j := 0; j < elevtypes.N_BUTTONS - 1; j++ {
 					ButtonMatrix[i][j] = driver.GetButtonSignal(j, i)
 					if ButtonMatrix[i][j] == 1 {
 						newOrder = elevtypes.Order{i, j}
 						if j == 2 {
+							fmt.Println("New order internal")
 							orders_local_elevator_chan <- newOrder
 						} else {
+							fmt.Println("New order external")
 							orders_local_elevator_chan <- newOrder
 						}	
 					}

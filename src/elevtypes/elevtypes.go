@@ -27,11 +27,11 @@ const (
 )
 	
 type Status struct {
-	CurFloor string
+	CurFloor int
 	Dir int
 	OrderList []Order//This elevator's orders to execute
 	UnprocessedOrders []Order//This elevator's orders, not yet assigned
-	state State_enum
+	//state State_Enum
 }
 
 const N_BUTTONS = 3

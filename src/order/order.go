@@ -4,7 +4,7 @@ import(
 	"elevtypes"
 	"driver"
 	"time"
-//	"fmt"
+	"fmt"
 	
 )
 
@@ -17,7 +17,12 @@ import(
 func OrderListener(orders_local_elevator_chan chan<- elevtypes.Order) {
 	var newOrder elevtypes.Order
 	var ButtonMatrix [elevtypes.N_FLOORS][elevtypes.N_BUTTONS]int
-
+	
+	for x := 0; x < elevtypes.N_FLOORS; x++ { 
+				for y := 0; y < elevtypes.N_BUTTONS; y++ {
+					ButtonMatrix[x][y] = 0
+				}
+	}
 	
 	go func() {
 		for {
@@ -28,8 +33,10 @@ func OrderListener(orders_local_elevator_chan chan<- elevtypes.Order) {
 					if ButtonMatrix[i][j] == 1 {
 						newOrder = elevtypes.Order{i, j}
 						if j == 2 {
+							fmt.Println("New order internal")
 							orders_local_elevator_chan <- newOrder
 						} else {
+							fmt.Println("New order external")
 							orders_local_elevator_chan <- newOrder
 						}	
 					}

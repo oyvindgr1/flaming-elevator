@@ -13,37 +13,53 @@ import (
 
 
 func main(){
+	var orderList []elevtypes.Order
 	statusmap_chan := make(chan map[string]elevtypes.Status,1)
 	status_chan := make(chan elevtypes.Status,1)
 	
-	orders_local_elev_chan := make(chan elevtypes.Order, 1)
+	orders_local_elev_chan := make(chan elevtypes.Order)
 	
 		
 	netIsAlive	:= make(chan bool)
-	
 
 	//var ip = net.IPv4(129,241,187,153)
-	state1 := Status{1, 1,nil , nil,2}
+	var state1 elevtypes.Status
+	state1.CurFloor = 1
+	state1.Dir = 1
+	state1.OrderList = nil
+	state1.UnprocessedOrders = orderList
+
 	init := driver.Init()
 	fmt.Printf("Driver initiated: %d\n", init)
 	go func() {
-		for {
+		for {	
+			state1.UnprocessedOrders = orderList
 			select {
 			case status_chan <- state1:
 			}
 		}
 	}()
-		
+	
+	go order.OrderListener(orders_local_elev_chan)
 	go network.ReadStatus(statusmap_chan, netIsAlive)
 	go network.SendStatus(status_chan)
 	
-	go order.OrderListener(orders_local_elev_chan)
 	
+	var isInList bool
 	go func() {
 		for {
 			select {
 			case newOrder := <-orders_local_elev_chan:
-				fmt.Printf("Floor of new order: %d, Type of new order: %d\n", newOrder.Floor, newOrder.Dir)
+				isInList = false
+				for i,_ := range orderList {							
+					if newOrder == orderList[i] {
+						isInList = true
+					}
+				}
+				if isInList == false {					
+					orderList = append(orderList, newOrder)
+					fmt.Printf("Floor of new order: %d, Type of new order: %d\n", newOrder.Floor, newOrder.Dir)
+				}
 			}
 		}
 	}()

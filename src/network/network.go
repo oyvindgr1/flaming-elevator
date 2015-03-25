@@ -12,7 +12,7 @@ import (
 
 
 
-func SendInfo(status_send_chan <-chan elevtypes.Message) {
+func SendInfo(status_send_chan <-chan elevtypes.Status) {
 	baddr, err_conv_ip := net.ResolveUDPAddr("udp", "129.241.187.255:20020")
 	if err_conv_ip != nil {
 			fmt.Println("error:", err_conv_ip)
@@ -44,16 +44,16 @@ func SendInfo(status_send_chan <-chan elevtypes.Message) {
 }
 
 
-func ReadInfo(status_read_chan chan<- elevtypes.Message, netIsAlive chan<- bool) {
-	var msg elevtypes.Message
+func ReadInfo(statusmap_send_chan <-chan map[string]Status, netIsAlive chan<- bool) {
+	var statusMap map[string]Status
 	b := make([]byte, 1024)
 	laddr, err_conv_ip_listen := net.ResolveUDPAddr("udp", ":20020")
-	addr, err := net.ResolveUDPAddr("udp", getIP()+NetworkPort
-	if err_ != nil {
+	//addr, err := net.ResolveUDPAddr("udp", getIP()+NetworkPort
+	/*if err_ != nil {
 			fmt.Println("error:", err)
 			netIsAlive <- false
 			return
-		}
+		}*/
 	if err_conv_ip_listen != nil {
 			fmt.Println("error:", err_conv_ip_listen)
 			netIsAlive <- false
@@ -65,20 +65,31 @@ func ReadInfo(status_read_chan chan<- elevtypes.Message, netIsAlive chan<- bool)
 			netIsAlive <- false
 			return
 		}
-	for {
-		time.Sleep(1000 * time.Millisecond)
-		n, raddr, err_read := status_receiver.ReadFromUDP(b)
-		if err_read != nil {
-			fmt.Println("Error reading from UDP")
-		} else if laddr != addr {
-			err_decoding := json.Unmarshal(b[0:n], &msg)
-			if err_decoding != nil {
-				fmt.Println("Error decoding client msg")
+	go func() {	
+		for {
+			time.Sleep(250 * time.Millisecond)
+			n, raddr, err_read := status_receiver.ReadFromUDP(b)
+			if err_read != nil {
+				fmt.Println("Error reading from UDP")
 			} else {
-				status_read_chan <- msg
+				err_decoding := json.Unmarshal(b[0:n], &msg)
+				if err_decoding != nil {
+					fmt.Println("Error decoding client msg")
+				} else {
+					statusMap[raddr.String()] = msg
+				}
 			}
 		}
-	}
+	}()
+	
+	go func() {	
+		for {
+			select {
+			case statusmap_send_chan <- statusMap:
+				time.Sleep(10*time.Millisecond)	
+			}		
+		}
+	}()
 }
 
 func getIP() string {

@@ -5,7 +5,8 @@ import (
 
 )
 
-const (
+
+/*const (
 	NewOrderType MessageType  = iota
 	DeleteOrderType
 	CostType
@@ -16,19 +17,21 @@ type Message struct {
 	Message MessageType 
 	OrderInfo Order
 	Cost int
-}
-
-
-/*type State struct {
-	IP net.IP
-	CurFloor string
-	HeisNr string 	 
-	Astring string
-	Floor int
-	Dir int
-	UnprocessedOrders []Order
-	OrdersToExecute []Order  
 }*/
+const (
+	Running State_enum = iota
+	Idle 
+	Door
+	Undefined
+)
+	
+type Status struct {
+	CurFloor string
+	Dir int
+	OrderList []Order//This elevator's orders to execute
+	UnprocessedOrders []Order//This elevator's orders, not yet assigned
+	state State_enum
+}
 
 const N_BUTTONS = 3
 const N_FLOORS = 4
@@ -38,6 +41,7 @@ type Order struct {
 	Floor int
 	Dir int
 }
+
 
 //var UnprocessedOrders []Order
 

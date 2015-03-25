@@ -1,4 +1,4 @@
-package declarations
+package elevtypes
 
 import (
 	"net"
@@ -6,15 +6,31 @@ import (
 )
 
 
+/*const (
+	NewOrderType MessageType  = iota
+	DeleteOrderType
+	CostType
+	AddOrderType
+)
 
-type State struct {
-	IP net.IP
+type Message struct {
+	Message MessageType 
+	OrderInfo Order
+	Cost int
+}*/
+const (
+	Running State_enum = iota
+	Idle 
+	Door
+	Undefined
+)
+	
+type Status struct {
 	CurFloor string
-	HeisNr string 	 
-	Astring string
-	Floor int
 	Dir int
-	Orders []Order
+	OrderList []Order//This elevator's orders to execute
+	UnprocessedOrders []Order//This elevator's orders, not yet assigned
+	state State_enum
 }
 
 const N_BUTTONS = 3
@@ -26,11 +42,8 @@ type Order struct {
 	Dir int
 }
 
-type newOrders struct {
-	
-	Floor int
 
-}
+//var UnprocessedOrders []Order
 
 var lampChannelMatrix= [N_FLOORS][N_BUTTONS]int{
 	{LIGHT_UP1, LIGHT_DOWN1, LIGHT_COMMAND1},

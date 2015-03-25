@@ -4,6 +4,7 @@ import(
 	"driver"
 	"time"
 	"fmt"
+	"elevtypes"
 	
 )
 
@@ -20,12 +21,7 @@ const (
 	UNDEFINED
 )
 
-const (
-	Running State_enum = iota
-	Idle 
-	Door
-	Undefined
-)
+
 	
 func ElevatorInit() {
 	init = driver.Init()
@@ -46,9 +42,10 @@ func ElevatorInit() {
 	}
 }
 
-func StateMachine(current_order <-chan Order, previous_order <-chan Order, delete_order <-chan Order, state_chan <-chan State_enum, button_update_channel <-chan[N_BUTTONS][N_FLOORS]bool) {	
+func StateMachine(current_order <-chan Order, previous_order <-chan Order, delete_order <-chan Order, state_chan <-chan elevtypes.State_enum, button_update_channel <-chan[N_BUTTONS][N_FLOORS]bool) {	
 	var cur_order Order
 	var prev_order Order
+	var status Status{}
 	previous_floor_chan := make(chan Order, 1)
 	delete_order_chan := make(chan Order, 1)
 	state_update_chan := make(chan State_t, 1)
@@ -85,7 +82,7 @@ func StateMachine(current_order <-chan Order, previous_order <-chan Order, delet
 	}()
 }
 
-func run(thisOrder Order, previous_floor_chan chan Order, state *State_enum, state_update_chan chan State_enum) {
+func run(thisOrder Order, previous_floor_chan chan Order, state *elevtypes.State_enum, state_update_chan chan elevtypes.State_enum) {
 	if *state != Running {
 		*state = Running
 		driver.SetSpeed(300 * thisOrder.Dir)
@@ -110,7 +107,7 @@ func run(thisOrder Order, previous_floor_chan chan Order, state *State_enum, sta
 	return NEW_ORDER
  }
 
-func wait(state_update_chan chan State_enum, state *State_enum) {
+func wait(state_update_chan chan elevtypes.State_enum, state *elevtypes.State_enum) {
 	if *state != Idle {
 		*state = Idle
 		state_update_chan <- Running
@@ -118,7 +115,7 @@ func wait(state_update_chan chan State_enum, state *State_enum) {
 	return NO_ORDERS
 }
 
-func door(state_update_chan chan State_enum, state *State_enum) {
+func door(state_update_chan chan elevtypes.State_enum, state *elevtypes.State_enum) {
 	if driver.GetFloorSensorSignal() != -1 {
 		if *state != Door {
 			*state = Door
@@ -134,7 +131,7 @@ func door(state_update_chan chan State_enum, state *State_enum) {
 
 }
 
-func undefined(state_update_chan chan State_enum, state *State_enum)
+func undefined(state_update_chan chan elevtypes.State_enum, state *elevtypes.State_enum)
 	if *state != Undefined {
 		*state = Undefined
 		state_update_chan <- Undefined
@@ -147,3 +144,5 @@ func ElevatorBrake(dir int) {
 	time.Sleep(time.Millisecond*20)
 	driver.SetSpeed(0)
 }
+
+

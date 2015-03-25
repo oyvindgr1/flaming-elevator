@@ -74,7 +74,7 @@ func StateMachine(current_order <-chan Order, previous_order <-chan Order, delet
 			time.Sleep(10 * time.Millisecond)
 			switch event {
 			case NEW_ORDER:
-				event = run(prev_floor_chan, state_update_chan, cur_order, &state)
+				event = run(cur_order, prev_floor_chan, &state, state_update_chan)
 			case FLOOR_REACHED:
 				event = door(state_update_chan, &state)
 			case NO_ORDERS:
@@ -85,7 +85,7 @@ func StateMachine(current_order <-chan Order, previous_order <-chan Order, delet
 	}()
 }
 
-func run(thisOrder Order,................) {
+func run(thisOrder Order, previous_floor_chan chan Order, state *State_enum, state_update_chan chan State_enum) {
 	if *state != Running {
 		*state = Running
 		driver.SetSpeed(300 * thisOrder.Dir)
@@ -110,7 +110,7 @@ func run(thisOrder Order,................) {
 	return NEW_ORDER
  }
 
-func wait(...........) {
+func wait(state_update_chan chan State_enum, state *State_enum) {
 	if *state != Idle {
 		*state = Idle
 		state_update_chan <- Running
@@ -118,7 +118,7 @@ func wait(...........) {
 	return NO_ORDERS
 }
 
-func door(.............) {
+func door(state_update_chan chan State_enum, state *State_enum) {
 	if driver.GetFloorSensorSignal() != -1 {
 		if *state != Door {
 			*state = Door
@@ -134,7 +134,7 @@ func door(.............) {
 
 }
 
-func undefined(.....)
+func undefined(state_update_chan chan State_enum, state *State_enum)
 	if *state != Undefined {
 		*state = Undefined
 		state_update_chan <- Undefined

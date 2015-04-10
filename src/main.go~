@@ -30,6 +30,7 @@ func main(){
 	state1.UnprocessedOrders = orderList
 
 	init := driver.Init()
+	driver.ClearAllLights()
 	fmt.Printf("Driver initiated: %d\n", init)
 	go func() {
 		for {	

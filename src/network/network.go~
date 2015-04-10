@@ -24,7 +24,7 @@ func SendStatus(status_send_chan <-chan elevtypes.Status) {
 	for {
 		select {
 		case status := <-status_send_chan:
-			time.Sleep(1000 * time.Millisecond)
+			time.Sleep(20 * time.Millisecond)
 			b, err_Json := json.Marshal(status)
         		if err_Json != nil {
 			        fmt.Println("error with JSON")
@@ -69,7 +69,7 @@ func ReadStatus(statusmap_send_chan chan<- map[string]elevtypes.Status, netIsAli
 		}
 	go func() {	
 		for {
-			time.Sleep(250 * time.Millisecond)
+			time.Sleep(5 * time.Millisecond)
 			n, raddr, err_read := status_receiver.ReadFromUDP(b)
 			if err_read != nil {
 				fmt.Println("Error reading from UDP")
@@ -79,12 +79,12 @@ func ReadStatus(statusmap_send_chan chan<- map[string]elevtypes.Status, netIsAli
 					fmt.Println("Error decoding client msg")
 				} else {
 					statusMap[raddr.String()] = msg
-					/*for key, _ := range statusMap {
-						fmt.Println("IP: %s\n", key)
+					for key, _ := range statusMap {
+						fmt.Printf("IP: %s\n", key)
 						for i, _ := range statusMap[key].UnprocessedOrders {
 							fmt.Printf("Order floor: %d, Order type: %d\n",statusMap[key].UnprocessedOrders[i].Floor, statusMap[key].UnprocessedOrders[i].Dir)
 						}
-					}*/
+					}
 				}
 			}
 		}

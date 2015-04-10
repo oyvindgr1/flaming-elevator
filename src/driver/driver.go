@@ -158,3 +158,20 @@ func SetLightFloorIndicator(floor int) {
 		fmt.Printf("SetFloorIndicator: Elevator out of range.")
 	}
 }
+/*
+func ClearAllLights() {
+	fmt.Printf("All lights cleared")
+	SetDoorOpenLamp(0)
+	SetStopLamp(0)
+	for i := 0; i < elevtypes.N_FLOORS; i++ {
+		
+		if i > 0 {
+			SetButtonLamp(1, i, 0)
+		}
+		if i < elevtypes.N_FLOORS-1 {
+			SetButtonLamp(0, i, 0)
+		}
+	SetButtonLamp(2, i, 0)
+	}
+}
+*/

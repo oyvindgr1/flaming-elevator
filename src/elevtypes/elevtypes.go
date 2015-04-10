@@ -37,10 +37,10 @@ type Status struct {
 const N_BUTTONS = 3
 const N_FLOORS = 4
 
-//ORDER_UP = 0, ORDER_DOWN = 1, ORDER_INTERNAL = 2
+//OrderType: ORDER_UP = 0, ORDER_DOWN = 1, ORDER_INTERNAL = 2
 type Order struct {
 	Floor int
-	Dir int
+	OrderType int
 }
 
 

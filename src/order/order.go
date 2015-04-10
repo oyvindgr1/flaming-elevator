@@ -14,6 +14,8 @@ import(
 	
 } */
 //, reset_button chan Order, reset_all chan bool 
+var orderList []Order	
+
 func OrderListener(orders_local_elevator_chan chan<- elevtypes.Order) {
 	var newOrder elevtypes.Order
 	var ButtonMatrix [elevtypes.N_FLOORS][elevtypes.N_BUTTONS]int
@@ -45,6 +47,34 @@ func OrderListener(orders_local_elevator_chan chan<- elevtypes.Order) {
 		}
 	}()
 }
+
+func OrderAppend(orderList_chan <-chan []Order, orders_local_elev_chan chan elevtypes.Order) {
+	for {
+		select {
+		case newOrder := <-orders_local_elev_chan:
+			isInList = false
+			for i,_ := range orderList {							
+				if newOrder == orderList[i] {
+					isInList = true
+				}
+			}
+			if isInList == false {					
+				orderList = append(orderList, newOrder)
+				orderList_chan <- orderList
+				fmt.Printf("Floor of new order: %d, Type of new order: %d\n", newOrder.Floor, newOrder.Dir)
+			}
+		}
+	}
+}()
+//ORDER_UP = 0, ORDER_DOWN = 1, ORDER_INTERNAL = 2
+func OrderDelete(orderType int, order Order) {
+	for i,_ := range orderList {
+		
+	
+	
+}
+
+
 /*
 
 	go func() {

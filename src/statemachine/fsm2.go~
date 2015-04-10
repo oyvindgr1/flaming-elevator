@@ -46,41 +46,54 @@ func StateMachine(current_order <-chan Order, previous_order <-chan Order, delet
 	var cur_order Order
 	var prev_order Order
 	var status Status{}
+	var state State_enum
 	previous_floor_chan := make(chan Order, 1)
 	delete_order_chan := make(chan Order, 1)
 	state_update_chan := make(chan State_t, 1)
 	var ButtonMatrix [N_BUTTONS][N_FLOORS]bool
 
-
-	/*go func () {
+	go func () {
+		//Oppdatere state-variablen etter kjøring av funksjonene i state-switch
 		for {
 			select {
+			case   
 			case 
 			case 
-			case 
-			case 
-		
 			}
 		}
-	}()*/
+			
+
+
+	}()
 
 	go func () {
-		var state State_enum
-		var event Event_enum
+		
+
+		
+
+		
 		for {
 			time.Sleep(10 * time.Millisecond)
-			switch event {
-			case NEW_ORDER:
-				event = run(cur_order, prev_floor_chan, &state, state_update_chan)
-			case FLOOR_REACHED:
-				event = door(state_update_chan, &state)
-			case NO_ORDERS:
-				event = wait(state_update_chan, &state)
-			case UNDEFINED:
-				event = undefined(state_update_chan, &state)
+			switch state {
+			case WAIT:
+				event = wait()
+			case RUN:
+				event = (state_update_chan, &state)
+			case OPEN:
+				event = (state_update_chan, &state)
 		}
 	}()
 }
+
+func wait() {
+		
+
+
+}
+
+
+
+
 
 func run(thisOrder Order, previous_floor_chan chan Order, state *elevtypes.State_enum, state_update_chan chan elevtypes.State_enum) {
 	if *state != Running {
@@ -107,13 +120,7 @@ func run(thisOrder Order, previous_floor_chan chan Order, state *elevtypes.State
 	return NEW_ORDER
  }
 
-func wait(state_update_chan chan elevtypes.State_enum, state *elevtypes.State_enum) {
-	if *state != Idle {
-		*state = Idle
-		state_update_chan <- Running
-	}
-	return NO_ORDERS
-}
+
 
 func door(state_update_chan chan elevtypes.State_enum, state *elevtypes.State_enum) {
 	if driver.GetFloorSensorSignal() != -1 {

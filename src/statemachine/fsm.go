@@ -76,8 +76,6 @@ func StateMachine(current_order <-chan Order, previous_order <-chan Order, delet
 				event = door(state_update_chan, &state)
 			case NO_ORDERS:
 				event = wait(state_update_chan, &state)
-			case UNDEFINED:
-				event = undefined(state_update_chan, &state)
 		}
 	}()
 }

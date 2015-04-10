@@ -17,7 +17,7 @@ func main(){
 	statusmap_chan := make(chan map[string]elevtypes.Status,1)
 	status_chan := make(chan elevtypes.Status,1)
 	
-	orders_local_elev_chan := make(chan elevtypes.Order)
+	orders_local_elev_chan := make(chan elevtypes.Order, 1)
 	
 		
 	netIsAlive	:= make(chan bool)
@@ -41,28 +41,15 @@ func main(){
 	}()
 	
 	go order.OrderListener(orders_local_elev_chan)
+	go order.OrderAppend(orderList_chan, orders_local_elev_chan)
 	go network.ReadStatus(statusmap_chan, netIsAlive)
 	go network.SendStatus(status_chan)
 	
-	
 	var isInList bool
-	go func() {
-		for {
-			select {
-			case newOrder := <-orders_local_elev_chan:
-				isInList = false
-				for i,_ := range orderList {							
-					if newOrder == orderList[i] {
-						isInList = true
-					}
-				}
-				if isInList == false {					
-					orderList = append(orderList, newOrder)
-					fmt.Printf("Floor of new order: %d, Type of new order: %d\n", newOrder.Floor, newOrder.Dir)
-				}
-			}
-		}
-	}()
+
+	
+	go fsm.StateMachine(orderList)
+	
 	
 	go func() {
 		for {
@@ -74,7 +61,7 @@ func main(){
 	}()
 
 	
-	time.Sleep(1000*time.Second)
+	select{}
 	
 
 

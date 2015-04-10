@@ -2,35 +2,32 @@
 package main
 import (
         "network"
-	"time"
 	"driver"
 	"order"
-	"fmt"
 	"elevtypes"
+	"statemachine"
 )
 
 
-
-
 func main(){
-	var orderList []elevtypes.Order
 	statusmap_chan := make(chan map[string]elevtypes.Status,1)
 	status_chan := make(chan elevtypes.Status,1)
 	
-	orders_local_elev_chan := make(chan elevtypes.Order, 1)
+	orders_local_elev_chan := make(chan [elevtypes.N_FLOORS][elevtypes.N_BUTTONS]int, 1)
+	orders_external_elev_chan := make(chan [elevtypes.N_FLOORS][elevtypes.N_BUTTONS-1]int, 1)
 	
 		
-	netIsAlive	:= make(chan bool)
-
+	//netIsAlive	:= make(chan bool)
+	driver.Init()
 	//var ip = net.IPv4(129,241,187,153)
-	var state1 elevtypes.Status
+	/*var state1 elevtypes.Status
 	state1.CurFloor = 1
 	state1.Dir = 1
 	state1.OrderList = nil
 	state1.UnprocessedOrders = orderList
+	
+	
 
-	init := driver.Init()
-	fmt.Printf("Driver initiated: %d\n", init)
 	go func() {
 		for {	
 			state1.UnprocessedOrders = orderList
@@ -39,32 +36,22 @@ func main(){
 			}
 		}
 	}()
-	
-	go order.OrderListener(orders_local_elev_chan)
-	go order.OrderAppend(orderList_chan, orders_local_elev_chan)
+	*/
+	go order.OrderListener(orders_local_elev_chan,orders_external_elev_chan)
 	go network.ReadStatus(statusmap_chan, netIsAlive)
 	go network.SendStatus(status_chan)
 	
-	var isInList bool
-
-	go func() {
-		for {
-			select{
-			case orderList := <- orderList_chan:
-			}
-		}
-	}()
-	go fsm.StateMachine(orderList)
+	go statemachine.StateMachine(orders_local_elev_chan,orders_external_elev_chan,status_chan)
 	
 	
-	go func() {
+	/*go func() {
 		for {
 			select{
 			case aBool := <- netIsAlive:
 				fmt.Printf(" Net alive: %t", aBool)
 			}
 		}
-	}()
+	}()*/
 
 	
 	select{}

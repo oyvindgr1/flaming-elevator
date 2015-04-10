@@ -17,20 +17,13 @@ type Message struct {
 	OrderInfo Order
 	Cost int
 }*/
-type State_enum int
-  
-const (
-	Running State_enum = iota
-	Idle 
-	Door
-	Undefined
-)
+
 	
 type Status struct {
 	CurFloor int
 	Dir int
-	OrderList []Order//This elevator's orders to execute
-	UnprocessedOrders []Order//This elevator's orders, not yet assigned
+	OrderMatrix [N_FLOORS][N_BUTTONS]int//This elevator's orders to execute
+	UnprocessedMatrix [N_FLOORS][N_BUTTONS-1]int//This elevator's orders, not yet assigned
 	//state State_Enum
 }
 

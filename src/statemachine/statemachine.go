@@ -1,100 +1,114 @@
-package fsm
+package statemachine
 
 import(
 	"driver"
 	"time"
 	"fmt"
 	"elevtypes"
+	"order"
 	
 )
 
-const(
-	UP   = 1
-	DOWN = -1
-	REST = 0
-)
-
+type State_enum int
+  
 const (
-	FLOOR_REACHED Event_enum = iota
-	NEW_ORDER
-	NO_ORDERS
-	UNDEFINED
+	WAIT State_enum = iota
+	RUN 
+	OPEN
 )
 
-
 	
-func ElevatorInit() {
-	init = driver.Init()
+func ElevatorInit() int {
+	init := driver.Init()
 	if init == 0 {
 		return 0
 	} else {
 		if driver.GetFloorSensorSignal() != -1 {
 		} else {
-			driver.SetSpeed(DOWN*300)
+			driver.SetSpeed(-1*300)
 			floor := driver.GetFloorSensorSignal()
 			for floor == -1 {
 				floor = driver.GetFloorSensorSignal()
 			}
-			ElevatorBrake(UP)
+			ElevatorBrake(1)
 		}
 		fmt.Printf("Initialized\n")
 		return 1
 	}
 }
 
-func StateMachine(orderList []Order) {	
-	var cur_order Order
-	var prev_order Order
-	var status Status{}
+func StateMachine(orders_local_elevator_chan <-chan [elevtypes.N_FLOORS][elevtypes.N_BUTTONS]int,orders_external_elevator_chan <-chan [elevtypes.N_FLOORS][elevtypes.N_BUTTONS-1]int, 	status_update_chan chan<- elevtypes.Status) {
+	var status elevtypes.Status
+	var orderMatrix [elevtypes.N_FLOORS][elevtypes.N_BUTTONS]int	
+	var unprocessedMatrix [elevtypes.N_FLOORS][elevtypes.N_BUTTONS-1]int	
 	var state State_enum
-	previous_floor_chan := make(chan Order, 1)
-	delete_order_chan := make(chan Order, 1)
-	state_update_chan := make(chan State_t, 1)
-	var ButtonMatrix [N_BUTTONS][N_FLOORS]bool
-
+	var floor int
+	var dir int
+	state = WAIT
+	
+	order.InitMatrix(&orderMatrix)
+	InitMatrix(&unprocessedMatrix)
+	
 	go func () {
-		//Oppdatere state-variablen etter kjøring av funksjonene i state-switch
 		for {
 			select {
-			case   
-			case 
-			case 
+			case orderMatrix := <-orders_local_elevator_chan:
+				status.OrderMatrix = orderMatrix
+			case unprocessedMatrix := <-orders_external_elevator_chan:  
+				status.UnprocessedMatrix = unprocessedMatrix
+		
 			}
+			status.CurFloor = floor
+			status.Dir = dir
+			status_update_chan <- status	
+			time.Sleep(5 * time.Millisecond)
 		}
-			
-
-
 	}()
 
 	go func () {
-		
-
-		
-
-		
 		for {
 			time.Sleep(10 * time.Millisecond)
 			switch state {
 			case WAIT:
-				event = wait()
-			case RUN:
-				event = (state_update_chan, &state)
+				wait(orderMatrix, &state)
+			/*case RUN:
+				run(orderList, &state)
 			case OPEN:
-				event = (state_update_chan, &state)
+				open()*/
+			}
 		}
 	}()
 }
 
-func wait() {
-		
+func wait(orderMatrix [elevtypes.N_FLOORS][elevtypes.N_BUTTONS]int, state *State_enum) {
 
-
+	for i := 0; i < elevtypes.N_FLOORS; i++ { 
+		for j := 0; j < elevtypes.N_BUTTONS; j++ {
+			if orderMatrix[i][j] == 1 {
+				time.Sleep(1 * time.Second)
+				fmt.Println("Matrix not empty...")
+			}
+		}
+	}		
 }
 
+/*func run(orderList []Order, state *elevtypes.State_enum) {
+			
+			
+	
+}*/
 
 
 
 
+
+
+
+
+
+
+
+/*
 func run(thisOrder Order, previous_floor_chan chan Order, state *elevtypes.State_enum, state_update_chan chan elevtypes.State_enum) {
 	if *state != Running {
 		*state = Running
@@ -145,11 +159,18 @@ func undefined(state_update_chan chan elevtypes.State_enum, state *elevtypes.Sta
 	}
 	return UNDEFINED
 }
-
+*/
 func ElevatorBrake(dir int) {
 	driver.SetSpeed(dir*300)
 	time.Sleep(time.Millisecond*20)
 	driver.SetSpeed(0)
 }
 
+func InitMatrix(matrix *[elevtypes.N_FLOORS][elevtypes.N_BUTTONS-1]int) {
+	for x := 0; x < elevtypes.N_FLOORS; x++ { 
+		for y := 0; y < elevtypes.N_BUTTONS-1; y++ {
+			matrix[x][y] = 0
+		}
+	}
+}
 

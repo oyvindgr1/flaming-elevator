@@ -36,8 +36,11 @@ func main() {
 	}()
 	*/
 	go order.OrderListener(orders_local_elev_chan, orders_external_elev_chan)
+	go order.OrdersFromNetwork(statusmap_chan)
+	
 	go network.SendStatus(status_chan)
 	go network.ReadStatus(statusmap_chan, netIsAlive)
+
 
 	go statemachine.StateMachine(orders_local_elev_chan, orders_external_elev_chan, status_chan)
 

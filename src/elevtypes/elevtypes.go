@@ -19,7 +19,7 @@ type Status struct {
 	CurFloor          int
 	Dir               int
 	OrderMatrix       [N_FLOORS][N_BUTTONS]int     //This elevator's orders to execute
-	UnprocessedMatrix [N_FLOORS][N_BUTTONS - 1]int //This elevator's orders, not yet assigned
+	UnprocessedOrdersMatrix [N_FLOORS][N_BUTTONS - 1]int //This elevator's orders, not yet assigned
 	//state State_Enum
 }
 

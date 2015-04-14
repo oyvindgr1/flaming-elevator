@@ -68,8 +68,6 @@ func ReadStatus(statusmap_send_chan chan<- map[string]elevtypes.Status, netIsAli
 			b := make([]byte, 1024)
 			n, raddr, err_read := status_receiver.ReadFromUDP(b)
 			
-			fmt.Println("\nreceived jsondata:", string(b))
-			
 			if err_read != nil {
 				fmt.Println("Error reading from UDP")
 			} else {
@@ -79,10 +77,11 @@ func ReadStatus(statusmap_send_chan chan<- map[string]elevtypes.Status, netIsAli
 				} else {
 					
 					statusMap[raddr.String()] = msg
-					for key, _ := range statusMap {
-						fmt.Printf(" IP: %s \n", raddr.String())
+					statusmap_send_chan <- statusMap
+					/*for key, _ := range statusMap {
+						fmt.Printf(" \nIP: %s  \n", key)
 						PrintMatrix(statusMap[key].UnprocessedMatrix)
-					}
+					}*/
 				}
 			}
 			
@@ -93,13 +92,12 @@ func ReadStatus(statusmap_send_chan chan<- map[string]elevtypes.Status, netIsAli
 		for {
 			select {
 			case statusmap_send_chan <- statusMap:
-				time.Sleep(10 * time.Millisecond)
 			}
 		}
 	}()*/
 }
 
-func getIP() string {
+func GetIP() string {
 	conn, err := net.Dial("udp", "google.com:80")
 	if err != nil {
 		fmt.Printf("Error with dialing Google.com", err)

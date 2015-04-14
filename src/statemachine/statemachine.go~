@@ -1,23 +1,21 @@
 package statemachine
 
-import(
+import (
 	"driver"
-	"time"
-	"fmt"
 	"elevtypes"
+	"fmt"
 	"order"
-	
+	"time"
 )
 
 type State_enum int
-  
+
 const (
 	WAIT State_enum = iota
-	RUN 
+	RUN
 	OPEN
 )
 
-	
 func ElevatorInit() int {
 	init := driver.Init()
 	if init == 0 {
@@ -25,7 +23,7 @@ func ElevatorInit() int {
 	} else {
 		if driver.GetFloorSensorSignal() != -1 {
 		} else {
-			driver.SetSpeed(-1*300)
+			driver.SetSpeed(-1 * 300)
 			floor := driver.GetFloorSensorSignal()
 			for floor == -1 {
 				floor = driver.GetFloorSensorSignal()
@@ -37,51 +35,54 @@ func ElevatorInit() int {
 	}
 }
 
-func StateMachine(orders_local_elevator_chan <-chan [elevtypes.N_FLOORS][elevtypes.N_BUTTONS]int,orders_external_elevator_chan <-chan [elevtypes.N_FLOORS][elevtypes.N_BUTTONS-1]int, 	status_update_chan chan<- elevtypes.Status) {
+func StateMachine(orders_local_elevator_chan <-chan [elevtypes.N_FLOORS][elevtypes.N_BUTTONS]int, orders_external_elevator_chan <-chan [elevtypes.N_FLOORS][elevtypes.N_BUTTONS - 1]int, status_update_chan chan<- elevtypes.Status) {
 	var status elevtypes.Status
-	var orderMatrix [elevtypes.N_FLOORS][elevtypes.N_BUTTONS]int	
-	var unprocessedMatrix [elevtypes.N_FLOORS][elevtypes.N_BUTTONS-1]int	
+	var orderMatrix [elevtypes.N_FLOORS][elevtypes.N_BUTTONS]int
+	var unprocessedMatrix [elevtypes.N_FLOORS][elevtypes.N_BUTTONS - 1]int
 	var state State_enum
 	var floor int
 	var dir int
 	state = WAIT
-	
+
 	order.InitMatrix(&orderMatrix)
 	InitMatrix(&unprocessedMatrix)
-	
-	go func () {
+
+	go func() {
 		for {
 			select {
 			case orderMatrix := <-orders_local_elevator_chan:
 				fmt.Println("oppdaterer Ordermatrix...")
 				status.OrderMatrix = orderMatrix
 			case unprocessedMatrix := <-orders_external_elevator_chan:
-				fmt.Println("Oppdaterer unprocessedmatrix..")  
+				fmt.Println("Oppdaterer unprocessedmatrix..")
 				status.UnprocessedMatrix = unprocessedMatrix
 			}
 		}
 	}()
 
-	go func () {
+	go func() {
 		for {
-			
-			status.CurFloor	= floor		
+			if driver.GetFloorSensorSignal() != -1 {
+				floor = driver.GetFloorSensorSignal()
+			}
+			fmt.Println(floor)
+			status.CurFloor = floor
 			status.Dir = dir
-			status_update_chan <- status	
-			time.Sleep(1 * time.Millisecond)
+			status_update_chan <- status
+			time.Sleep(1000 * time.Millisecond)
 		}
 	}()
 
-	go func () {
+	go func() {
 		for {
 			time.Sleep(10 * time.Millisecond)
 			switch state {
 			case WAIT:
 				wait(orderMatrix, &state)
-			/*case RUN:
-				run(orderList, &state)
-			case OPEN:
-				open()*/
+				/*case RUN:
+					run(orderList, &state)
+				case OPEN:
+					open()*/
 			}
 		}
 	}()
@@ -89,38 +90,28 @@ func StateMachine(orders_local_elevator_chan <-chan [elevtypes.N_FLOORS][elevtyp
 
 func wait(orderMatrix [elevtypes.N_FLOORS][elevtypes.N_BUTTONS]int, state *State_enum) {
 
-	for i := 0; i < elevtypes.N_FLOORS; i++ { 
+	for i := 0; i < elevtypes.N_FLOORS; i++ {
 		for j := 0; j < elevtypes.N_BUTTONS; j++ {
 			if orderMatrix[i][j] == 1 {
 				time.Sleep(1 * time.Second)
 				fmt.Println("Matrix not empty...")
 			}
 		}
-	}		
+	}
 }
 
 /*func run(orderList []Order, state *elevtypes.State_enum) {
-			
-			
-	
+
+
+
 }*/
-
-
-
-
-
-
-
-
-
-
 
 /*
 func run(thisOrder Order, previous_floor_chan chan Order, state *elevtypes.State_enum, state_update_chan chan elevtypes.State_enum) {
 	if *state != Running {
 		*state = Running
 		driver.SetSpeed(300 * thisOrder.Dir)
-		state_update_chan <- Running	
+		state_update_chan <- Running
 	}
 	cur_floor = driver.GetFloorSensorSignal()
 	if cur_floor != -1 {
@@ -168,16 +159,15 @@ func undefined(state_update_chan chan elevtypes.State_enum, state *elevtypes.Sta
 }
 */
 func ElevatorBrake(dir int) {
-	driver.SetSpeed(dir*300)
-	time.Sleep(time.Millisecond*20)
+	driver.SetSpeed(dir * 300)
+	time.Sleep(time.Millisecond * 20)
 	driver.SetSpeed(0)
 }
 
-func InitMatrix(matrix *[elevtypes.N_FLOORS][elevtypes.N_BUTTONS-1]int) {
-	for x := 0; x < elevtypes.N_FLOORS; x++ { 
+func InitMatrix(matrix *[elevtypes.N_FLOORS][elevtypes.N_BUTTONS - 1]int) {
+	for x := 0; x < elevtypes.N_FLOORS; x++ {
 		for y := 0; y < elevtypes.N_BUTTONS-1; y++ {
 			matrix[x][y] = 0
 		}
 	}
 }
-

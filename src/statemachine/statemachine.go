@@ -38,14 +38,14 @@ func ElevatorInit() int {
 func StateMachine(orders_local_elevator_chan <-chan [elevtypes.N_FLOORS][elevtypes.N_BUTTONS]int, orders_external_elevator_chan <-chan [elevtypes.N_FLOORS][elevtypes.N_BUTTONS - 1]int, status_update_chan chan<- elevtypes.Status) {
 	var status elevtypes.Status
 	var orderMatrix [elevtypes.N_FLOORS][elevtypes.N_BUTTONS]int
-	var unprocessedMatrix [elevtypes.N_FLOORS][elevtypes.N_BUTTONS - 1]int
+	var unprocessedOrdersMatrix [elevtypes.N_FLOORS][elevtypes.N_BUTTONS - 1]int
 	var state State_enum
 	var floor int
 	var dir int
 	state = WAIT
 
 	order.InitMatrix(&orderMatrix)
-	InitMatrix(&unprocessedMatrix)
+	InitMatrix(&unprocessedOrdersMatrix)
 
 	go func() {
 		for {
@@ -53,20 +53,23 @@ func StateMachine(orders_local_elevator_chan <-chan [elevtypes.N_FLOORS][elevtyp
 			case orderMatrix := <-orders_local_elevator_chan:
 				fmt.Println("oppdaterer Ordermatrix...")
 				status.OrderMatrix = orderMatrix
-			case unprocessedMatrix := <-orders_external_elevator_chan:
-				fmt.Println("Oppdaterer unprocessedmatrix..")
-				status.UnprocessedMatrix = unprocessedMatrix
+			case unprocessedOrdersMatrix := <-orders_external_elevator_chan:
+				fmt.Println("Oppdaterer unprocessedOrdersMatrix..")
+				status.UnprocessedOrdersMatrix = unprocessedOrdersMatrix
 			}
 		}
 	}()
 
 	go func() {
 		for {
-
+			if driver.GetFloorSensorSignal() != -1 {
+				floor = driver.GetFloorSensorSignal()
+			}
+			fmt.Println(floor)
 			status.CurFloor = floor
 			status.Dir = dir
 			status_update_chan <- status
-			time.Sleep(100 * time.Millisecond)
+			time.Sleep(1000 * time.Millisecond)
 		}
 	}()
 

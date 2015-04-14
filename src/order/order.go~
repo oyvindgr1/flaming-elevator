@@ -5,6 +5,8 @@ import (
 	"elevtypes"
 	"fmt"
 	"time"
+	"network"
+	"strings"
 )
 
 /*type Order_struct struct{
@@ -14,7 +16,7 @@ import (
 } */
 //, reset_button chan Order, reset_all chan bool
 var orderMatrix [elevtypes.N_FLOORS][elevtypes.N_BUTTONS]int
-var unprocessedMatrix [elevtypes.N_FLOORS][elevtypes.N_BUTTONS - 1]int
+var unprocessedOrdersMatrix [elevtypes.N_FLOORS][elevtypes.N_BUTTONS - 1]int
 
 func OrderListener(orders_local_elevator_chan chan<- [elevtypes.N_FLOORS][elevtypes.N_BUTTONS]int, orders_external_elevator_chan chan<- [elevtypes.N_FLOORS][elevtypes.N_BUTTONS - 1]int) {
 	var ButtonMatrix [elevtypes.N_FLOORS][elevtypes.N_BUTTONS]int
@@ -25,22 +27,108 @@ func OrderListener(orders_local_elevator_chan chan<- [elevtypes.N_FLOORS][elevty
 			for i := 0; i < elevtypes.N_FLOORS; i++ {
 				for j := 0; j < elevtypes.N_BUTTONS; j++ {
 					ButtonMatrix[i][j] = driver.GetButtonSignal(j, i)
+					if ButtonMatrix[1][1] == 1 {
+					}
 					if ButtonMatrix[i][j] == 1 {
 						if j == 2 {
-							fmt.Println("New order internal")
 							orderMatrix[i][j] = 1
 							orders_local_elevator_chan <- orderMatrix
 						} else {
-							fmt.Println("New order external")
-							unprocessedMatrix[i][j] = 1
-							orders_external_elevator_chan <- unprocessedMatrix
+							unprocessedOrdersMatrix[i][j] = 1
+							orders_external_elevator_chan <- unprocessedOrdersMatrix
 
 						}
 					}
 				}
 			}
+			PrintMatrix(OrderMatrix)
 		}
 	}()
+}
+
+func OrdersFromNetwork(statusmap_send_chan <-chan map[string]elevtypes.Status) {
+	for {
+		select {
+		case statusMap := <- statusmap_send_chan:
+			for key, _ := range statusMap {
+				if !MatrixIsEmpty(statusMap[key].UnprocessedOrdersMatrix){
+					CostFunction(statusMap)
+					checkUnprocessedMatrix(statusMap)
+				}
+			}
+		}
+		
+	}
+}
+
+func checkUnprocessedMatrix(statusMap map[string]elevtypes.Status){
+	for key, _ := range statusMap {
+		for i := 0; i < elevtypes.N_FLOORS; i++ {
+			for j := 0; j < elevtypes.N_BUTTONS-1; j++ {
+				if unprocessedOrdersMatrix[i][j] == statusMap[key].UnprocessedOrdersMatrix[i][j] {
+					unprocessedOrdersMatrix[i][j] = 0
+				}
+			}
+		}	
+	}
+}
+
+func CostFunction(statusMap map[string]elevtypes.Status){
+	fmt.Println("In Costfunction.")
+	var orderFloor int
+	var orderType int
+	var penaltyMap map[string]int
+	penaltyMap = make(map[string]int)
+	var lowestPenalty int
+	var lowestPenaltyIP string
+	for key, _ := range statusMap{
+		for x := 0; x < elevtypes.N_FLOORS; x++ {
+			for y := 0; y < elevtypes.N_BUTTONS-1; y++ {
+				if statusMap[key].UnprocessedOrdersMatrix[x][y] == 1 {
+					orderFloor = x
+					orderType = y
+				}
+			}
+		}
+	}
+	for key, _ := range statusMap {
+		penaltyMap[key] = AbsoluteValue(orderFloor-statusMap[key].CurFloor) 
+		if orderType != statusMap[key].Dir{
+			penaltyMap[key] = penaltyMap[key] + 4
+		}
+	}
+	lowestPenalty = 100
+	for key, _ := range penaltyMap {
+		if penaltyMap[key] < lowestPenalty {
+			lowestPenalty = penaltyMap[key]
+			lowestPenaltyIP = key
+			fmt.Println("Penalty: ",lowestPenalty)
+		}
+	}
+	if strings.Split(lowestPenaltyIP, ":")[0] == network.GetIP() {
+		orderMatrix[orderFloor][orderType] = 1
+	}
+	
+	//PrintMatrix(orderMatrix)
+}
+
+func AbsoluteValue(value int) int{
+	if value < 0 {
+		return -value
+	}else {
+		return value
+	}
+}
+
+func MatrixIsEmpty(matrix  [elevtypes.N_FLOORS][elevtypes.N_BUTTONS-1]int) bool {
+	for x := 0; x < elevtypes.N_FLOORS; x++ {
+		for y := 0; y < elevtypes.N_BUTTONS-1; y++ {
+			if matrix[x][y] == 1 {
+				return false
+			}
+		}
+	}
+	return true
 }
 
 func DeleteOrder(floor int, orderType int, orders_local_elevator_chan chan<- [elevtypes.N_FLOORS][elevtypes.N_BUTTONS]int) {
@@ -55,7 +143,15 @@ func InitMatrix(matrix *[elevtypes.N_FLOORS][elevtypes.N_BUTTONS]int) {
 		}
 	}
 }
-
+func PrintMatrix(matrix [elevtypes.N_FLOORS][elevtypes.N_BUTTONS ]int) {
+	fmt.Println("\nFloor \t UP \t DOWN \t INTERNAL" )
+	for i := 0; i < elevtypes.N_FLOORS; i++ {
+		fmt.Printf("\n %d \t", i+1)
+		for j := 0; j < elevtypes.N_BUTTONS; j++ {
+			fmt.Printf("%d \t ", matrix[i][j])
+		}
+	}
+}
 /*
 func OrderAppend(orderList_chan <-chan []Order, orders_local_elev_chan chan elevtypes.Order) {
 	for {

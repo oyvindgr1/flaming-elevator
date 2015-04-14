@@ -53,12 +53,19 @@ func StateMachine(orders_local_elevator_chan <-chan [elevtypes.N_FLOORS][elevtyp
 		for {
 			select {
 			case orderMatrix := <-orders_local_elevator_chan:
+				fmt.Println("oppdaterer Ordermatrix...")
 				status.OrderMatrix = orderMatrix
-			case unprocessedMatrix := <-orders_external_elevator_chan:  
+			case unprocessedMatrix := <-orders_external_elevator_chan:
+				fmt.Println("Oppdaterer unprocessedmatrix..")  
 				status.UnprocessedMatrix = unprocessedMatrix
-		
 			}
-			status.CurFloor = floor
+		}
+	}()
+
+	go func () {
+		for {
+			
+			status.CurFloor	= floor		
 			status.Dir = dir
 			status_update_chan <- status	
 			time.Sleep(5 * time.Millisecond)

@@ -17,7 +17,7 @@ func main(){
 	orders_external_elev_chan := make(chan [elevtypes.N_FLOORS][elevtypes.N_BUTTONS-1]int, 1)
 	
 		
-	//netIsAlive	:= make(chan bool)
+	netIsAlive	:= make(chan bool)
 	driver.Init()
 	//var ip = net.IPv4(129,241,187,153)
 	/*var state1 elevtypes.Status

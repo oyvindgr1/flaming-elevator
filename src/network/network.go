@@ -24,7 +24,7 @@ func SendStatus(status_send_chan <-chan elevtypes.Status) {
 	for {
 		select {
 		case status := <-status_send_chan:
-			time.Sleep(20 * time.Millisecond)
+			time.Sleep(2 * time.Millisecond)
 			b, err_Json := json.Marshal(status)
         		if err_Json != nil {
 			        fmt.Println("error with JSON")
@@ -110,7 +110,7 @@ func getIP() string {
 
 func PrintMatrix(matrix [elevtypes.N_FLOORS][elevtypes.N_BUTTONS-1]int) {
 	time.Sleep(1*time.Second)
-	fmt.Println("Floor \t UP \t DOWN")	
+	fmt.Println("\nFloor \t UP \t DOWN")	
 	for i := 0; i < elevtypes.N_FLOORS; i++ { 
 		fmt.Printf("\n %d \t", i)
 		for j := 0; j < elevtypes.N_BUTTONS-1; j++ {

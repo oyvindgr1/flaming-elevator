@@ -68,7 +68,7 @@ func StateMachine(orders_local_elevator_chan <-chan [elevtypes.N_FLOORS][elevtyp
 			status.CurFloor	= floor		
 			status.Dir = dir
 			status_update_chan <- status	
-			time.Sleep(5 * time.Millisecond)
+			time.Sleep(100 * time.Millisecond)
 		}
 	}()
 

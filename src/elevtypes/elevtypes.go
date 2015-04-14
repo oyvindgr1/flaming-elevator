@@ -1,9 +1,6 @@
 package elevtypes
 
-import (
-
-)
-
+import ()
 
 /*const (
 	NewOrderType MessageType  = iota
@@ -13,17 +10,16 @@ import (
 )
 
 type Message struct {
-	Message MessageType 
+	Message MessageType
 	OrderInfo Order
 	Cost int
 }*/
 
-	
 type Status struct {
-	CurFloor int
-	Dir int
-	OrderMatrix [N_FLOORS][N_BUTTONS]int//This elevator's orders to execute
-	UnprocessedMatrix [N_FLOORS][N_BUTTONS-1]int//This elevator's orders, not yet assigned
+	CurFloor          int
+	Dir               int
+	OrderMatrix       [N_FLOORS][N_BUTTONS]int     //This elevator's orders to execute
+	UnprocessedMatrix [N_FLOORS][N_BUTTONS - 1]int //This elevator's orders, not yet assigned
 	//state State_Enum
 }
 
@@ -32,11 +28,8 @@ const N_FLOORS = 4
 
 //OrderType: ORDER_UP = 0, ORDER_DOWN = 1, ORDER_INTERNAL = 2
 type Order struct {
-	Floor int
+	Floor     int
 	OrderType int
 }
 
-
 //var UnprocessedOrders []Order
-
-

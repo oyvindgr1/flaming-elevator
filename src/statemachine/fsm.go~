@@ -52,7 +52,7 @@ func StateMachine(current_order <-chan Order, previous_order <-chan Order, delet
 	var ButtonMatrix [N_BUTTONS][N_FLOORS]bool
 
 
-	go func () {
+	/*go func () {
 		for {
 			select {
 			case 
@@ -62,7 +62,7 @@ func StateMachine(current_order <-chan Order, previous_order <-chan Order, delet
 		
 			}
 		}
-	}()
+	}()*/
 
 	go func () {
 		var state State_enum

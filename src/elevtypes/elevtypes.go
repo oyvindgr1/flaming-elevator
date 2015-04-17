@@ -1,10 +1,6 @@
 package elevtypes
 
-import (
-	"net"
-
-)
-
+import ()
 
 /*const (
 	NewOrderType MessageType  = iota
@@ -14,47 +10,26 @@ import (
 )
 
 type Message struct {
-	Message MessageType 
+	Message MessageType
 	OrderInfo Order
 	Cost int
 }*/
-const (
-	Running State_enum = iota
-	Idle 
-	Door
-	Undefined
-)
-	
+
 type Status struct {
-	CurFloor string
-	Dir int
-	OrderList []Order//This elevator's orders to execute
-	UnprocessedOrders []Order//This elevator's orders, not yet assigned
-	state State_enum
+	CurFloor          int
+	Dir               int
+	OrderMatrix       [N_FLOORS][N_BUTTONS]int     //This elevator's orders to execute
+	UnprocessedOrdersMatrix [N_FLOORS][N_BUTTONS - 1]int //This elevator's orders, not yet assigned
+	//state State_Enum
 }
 
 const N_BUTTONS = 3
 const N_FLOORS = 4
 
-//ORDER_UP = 0, ORDER_DOWN = 1, ORDER_INTERNAL = 2
+//OrderType: ORDER_UP = 0, ORDER_DOWN = 1, ORDER_INTERNAL = 2
 type Order struct {
-	Floor int
-	Dir int
+	Floor     int
+	OrderType int
 }
-
 
 //var UnprocessedOrders []Order
-
-var lampChannelMatrix= [N_FLOORS][N_BUTTONS]int{
-	{LIGHT_UP1, LIGHT_DOWN1, LIGHT_COMMAND1},
-	{LIGHT_UP2, LIGHT_DOWN2, LIGHT_COMMAND2},
-	{LIGHT_UP3, LIGHT_DOWN3, LIGHT_COMMAND3},
-	{LIGHT_UP4, LIGHT_DOWN4, LIGHT_COMMAND4},
-}
-
-var buttonChannelMatrix = [N_FLOORS][N_BUTTONS]int{
-	{BUTTON_UP1, BUTTON_DOWN1, BUTTON_COMMAND1},
-	{BUTTON_UP2, BUTTON_DOWN2, BUTTON_COMMAND2},
-	{BUTTON_UP3, BUTTON_DOWN3, BUTTON_COMMAND3},
-	{BUTTON_UP4, BUTTON_DOWN4, BUTTON_COMMAND4},
-}	

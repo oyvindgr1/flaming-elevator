@@ -8,6 +8,7 @@ import "C"
 
 func IoInit() bool {
 	return bool(int(C.io_init()) != 1)
+	print("Io Init!")
 }
 
 func Set_bit(channel int) {

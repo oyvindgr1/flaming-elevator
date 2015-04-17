@@ -29,7 +29,7 @@ func ElevatorInit() int {
 			for floor == -1 {
 				floor = driver.GetFloorSensorSignal()
 			}
-			ElevatorBrake(1)
+			elevatorBrake(1)
 		}
 		fmt.Printf("Initialized\n")
 		return 1
@@ -87,18 +87,19 @@ func StateMachine(orders_local_elevator_chan <-chan [elevtypes.N_FLOORS][elevtyp
 				runDown(status.OrderMatrix, &state, &serveDirection)
 				order.PrintMatrix(status.OrderMatrix)
 			case OPEN:
-				open()
+				open(serveDirection)
 				order.PrintMatrix(status.OrderMatrix)
 			}
 		}
 	}()
 }
-func open() {
-	driver.SetSpeed(0)
+func open(serveDirection int) {
+	elevatorBrake(serveDirection)
 }
 
 func wait(orderMatrix [elevtypes.N_FLOORS][elevtypes.N_BUTTONS]int, state *State_enum, serveDirection *int) {
 	curFloor := driver.GetFloorSensorSignal()
+	fmt.Printf("FLOOR = %d", curFloor)
 	
 	for i := 0; i < elevtypes.N_FLOORS; i++ {
 		for j := 0; j < elevtypes.N_BUTTONS; j++ {
@@ -245,10 +246,16 @@ func undefined(state_update_chan chan elevtypes.State_enum, state *elevtypes.Sta
 	return UNDEFINED
 }
 */
-func ElevatorBrake(dir int) {
-	driver.SetSpeed(dir * 300)
-	time.Sleep(time.Millisecond * 20)
-	driver.SetSpeed(0)
+func elevatorBrake(dir int) {
+	if dir == 0 {
+		driver.SetSpeed(-1 * 300)
+		time.Sleep(time.Millisecond * 20)
+		driver.SetSpeed(0)
+	} else if dir == 1 {
+		driver.SetSpeed(1 * 300)
+		time.Sleep(time.Millisecond * 20)
+		driver.SetSpeed(0)
+	}
 }
 
 func InitMatrix(matrix *[elevtypes.N_FLOORS][elevtypes.N_BUTTONS - 1]int) {

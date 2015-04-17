@@ -18,7 +18,6 @@ func main() {
 
 	netIsAlive := make(chan bool)
 	driver.Init()
-	driver.SetSpeed(300)
 	//var ip = net.IPv4(129,241,187,153)
 	/*var state1 elevtypes.Status
 	state1.CurFloor = 1

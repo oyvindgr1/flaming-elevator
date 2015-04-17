@@ -75,7 +75,6 @@ func ReadStatus(statusmap_send_chan chan<- map[string]elevtypes.Status, netIsAli
 				if err_decoding != nil {
 					fmt.Println("Error decoding client msg")
 				} else {
-					
 					statusMap[raddr.String()] = msg
 					statusmap_send_chan <- statusMap
 					/*for key, _ := range statusMap {

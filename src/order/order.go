@@ -40,18 +40,18 @@ func OrderListener(orders_local_elevator_chan chan<- [elevtypes.N_FLOORS][elevty
 					}
 				}
 			}
-			PrintMatrix(orderMatrix)
+			//PrintMatrix(orderMatrix)
 		}
 	}()
 }
 
-func OrdersFromNetwork(statusmap_send_chan <-chan map[string]elevtypes.Status) {
+func OrdersFromNetwork(orders_local_elevator_chan chan<- [elevtypes.N_FLOORS][elevtypes.N_BUTTONS]int, statusmap_send_chan <-chan map[string]elevtypes.Status) {
 	for {
 		select {
 		case statusMap := <-statusmap_send_chan:
 			for key, _ := range statusMap {
 				if !MatrixIsEmpty(statusMap[key].UnprocessedOrdersMatrix) {
-					CostFunction(statusMap)
+					CostFunction(orders_local_elevator_chan, statusMap)
 					checkUnprocessedMatrix(statusMap)
 				}
 			}
@@ -72,7 +72,7 @@ func checkUnprocessedMatrix(statusMap map[string]elevtypes.Status) {
 	}
 }
 
-func CostFunction(statusMap map[string]elevtypes.Status) {
+func CostFunction(orders_local_elevator_chan chan<- [elevtypes.N_FLOORS][elevtypes.N_BUTTONS]int,statusMap map[string]elevtypes.Status) {
 	fmt.Println("In Costfunction.")
 	var orderFloor int
 	var orderType int
@@ -106,6 +106,7 @@ func CostFunction(statusMap map[string]elevtypes.Status) {
 	}
 	if strings.Split(lowestPenaltyIP, ":")[0] == network.GetIP() {
 		orderMatrix[orderFloor][orderType] = 1
+		orders_local_elevator_chan <- orderMatrix
 	}
 
 	//PrintMatrix(orderMatrix)

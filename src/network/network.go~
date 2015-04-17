@@ -80,7 +80,7 @@ func ReadStatus(statusmap_send_chan chan<- map[string]elevtypes.Status, netIsAli
 					statusmap_send_chan <- statusMap
 					/*for key, _ := range statusMap {
 						fmt.Printf(" \nIP: %s  \n", key)
-						PrintMatrix(statusMap[key].UnprocessedMatrix)
+						PrintMatrix(statusMap[key].UnprocessedOrdersMatrix)
 					}*/
 				}
 			}

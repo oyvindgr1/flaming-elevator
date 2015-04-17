@@ -9,6 +9,7 @@ import (
 )
 
 func main() {
+	
 	statusmap_chan := make(chan map[string]elevtypes.Status, 1)
 	status_chan := make(chan elevtypes.Status, 1)
 
@@ -17,6 +18,7 @@ func main() {
 
 	netIsAlive := make(chan bool)
 	driver.Init()
+	driver.SetSpeed(300)
 	//var ip = net.IPv4(129,241,187,153)
 	/*var state1 elevtypes.Status
 	state1.CurFloor = 1
@@ -36,7 +38,7 @@ func main() {
 	}()
 	*/
 	go order.OrderListener(orders_local_elev_chan, orders_external_elev_chan)
-	go order.OrdersFromNetwork(statusmap_chan)
+	go order.OrdersFromNetwork(orders_local_elev_chan, statusmap_chan)
 	
 	go network.SendStatus(status_chan)
 	go network.ReadStatus(statusmap_chan, netIsAlive)

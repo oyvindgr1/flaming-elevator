@@ -4,9 +4,9 @@ import (
 	"driver"
 	"elevtypes"
 	"fmt"
-	"time"
-	"network"
+	"network"	
 	"strings"
+	"time"
 )
 
 /*type Order_struct struct{
@@ -36,7 +36,6 @@ func OrderListener(orders_local_elevator_chan chan<- [elevtypes.N_FLOORS][elevty
 						} else {
 							unprocessedOrdersMatrix[i][j] = 1
 							orders_external_elevator_chan <- unprocessedOrdersMatrix
-
 						}
 					}
 				}
@@ -49,19 +48,19 @@ func OrderListener(orders_local_elevator_chan chan<- [elevtypes.N_FLOORS][elevty
 func OrdersFromNetwork(statusmap_send_chan <-chan map[string]elevtypes.Status) {
 	for {
 		select {
-		case statusMap := <- statusmap_send_chan:
+		case statusMap := <-statusmap_send_chan:
 			for key, _ := range statusMap {
-				if !MatrixIsEmpty(statusMap[key].UnprocessedOrdersMatrix){
+				if !MatrixIsEmpty(statusMap[key].UnprocessedOrdersMatrix) {
 					CostFunction(statusMap)
 					checkUnprocessedMatrix(statusMap)
 				}
 			}
 		}
-		
+
 	}
 }
 
-func checkUnprocessedMatrix(statusMap map[string]elevtypes.Status){
+func checkUnprocessedMatrix(statusMap map[string]elevtypes.Status) {
 	for key, _ := range statusMap {
 		for i := 0; i < elevtypes.N_FLOORS; i++ {
 			for j := 0; j < elevtypes.N_BUTTONS-1; j++ {
@@ -69,11 +68,11 @@ func checkUnprocessedMatrix(statusMap map[string]elevtypes.Status){
 					unprocessedOrdersMatrix[i][j] = 0
 				}
 			}
-		}	
+		}
 	}
 }
 
-func CostFunction(statusMap map[string]elevtypes.Status){
+func CostFunction(statusMap map[string]elevtypes.Status) {
 	fmt.Println("In Costfunction.")
 	var orderFloor int
 	var orderType int
@@ -81,7 +80,7 @@ func CostFunction(statusMap map[string]elevtypes.Status){
 	penaltyMap = make(map[string]int)
 	var lowestPenalty int
 	var lowestPenaltyIP string
-	for key, _ := range statusMap{
+	for key, _ := range statusMap {
 		for x := 0; x < elevtypes.N_FLOORS; x++ {
 			for y := 0; y < elevtypes.N_BUTTONS-1; y++ {
 				if statusMap[key].UnprocessedOrdersMatrix[x][y] == 1 {
@@ -92,8 +91,8 @@ func CostFunction(statusMap map[string]elevtypes.Status){
 		}
 	}
 	for key, _ := range statusMap {
-		penaltyMap[key] = AbsoluteValue(orderFloor-statusMap[key].CurFloor) 
-		if orderType != statusMap[key].Dir{
+		penaltyMap[key] = AbsoluteValue(orderFloor - statusMap[key].CurFloor)
+		if orderType != statusMap[key].Dir {
 			penaltyMap[key] = penaltyMap[key] + 4
 		}
 	}
@@ -102,25 +101,25 @@ func CostFunction(statusMap map[string]elevtypes.Status){
 		if penaltyMap[key] < lowestPenalty {
 			lowestPenalty = penaltyMap[key]
 			lowestPenaltyIP = key
-			fmt.Println("Penalty: ",lowestPenalty)
+			fmt.Println("Penalty: ", lowestPenalty)
 		}
 	}
 	if strings.Split(lowestPenaltyIP, ":")[0] == network.GetIP() {
 		orderMatrix[orderFloor][orderType] = 1
 	}
-	
+
 	//PrintMatrix(orderMatrix)
 }
 
-func AbsoluteValue(value int) int{
+func AbsoluteValue(value int) int {
 	if value < 0 {
 		return -value
-	}else {
+	} else {
 		return value
 	}
 }
 
-func MatrixIsEmpty(matrix  [elevtypes.N_FLOORS][elevtypes.N_BUTTONS-1]int) bool {
+func MatrixIsEmpty(matrix [elevtypes.N_FLOORS][elevtypes.N_BUTTONS - 1]int) bool {
 	for x := 0; x < elevtypes.N_FLOORS; x++ {
 		for y := 0; y < elevtypes.N_BUTTONS-1; y++ {
 			if matrix[x][y] == 1 {
@@ -143,8 +142,8 @@ func InitMatrix(matrix *[elevtypes.N_FLOORS][elevtypes.N_BUTTONS]int) {
 		}
 	}
 }
-func PrintMatrix(matrix [elevtypes.N_FLOORS][elevtypes.N_BUTTONS ]int) {
-	fmt.Println("\nFloor \t UP \t DOWN \t INTERNAL" )
+func PrintMatrix(matrix [elevtypes.N_FLOORS][elevtypes.N_BUTTONS]int) {
+	fmt.Println("\nFloor \t UP \t DOWN \t INTERNAL")
 	for i := 0; i < elevtypes.N_FLOORS; i++ {
 		fmt.Printf("\n %d \t", i+1)
 		for j := 0; j < elevtypes.N_BUTTONS; j++ {
@@ -152,6 +151,7 @@ func PrintMatrix(matrix [elevtypes.N_FLOORS][elevtypes.N_BUTTONS ]int) {
 		}
 	}
 }
+
 /*
 func OrderAppend(orderList_chan <-chan []Order, orders_local_elev_chan chan elevtypes.Order) {
 	for {

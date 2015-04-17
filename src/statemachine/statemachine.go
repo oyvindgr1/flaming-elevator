@@ -12,7 +12,8 @@ type State_enum int
 
 const (
 	WAIT State_enum = iota
-	RUN
+	RUN_UP
+	RUN_DOWN
 	OPEN
 )
 
@@ -41,9 +42,8 @@ func StateMachine(orders_local_elevator_chan <-chan [elevtypes.N_FLOORS][elevtyp
 	var unprocessedOrdersMatrix [elevtypes.N_FLOORS][elevtypes.N_BUTTONS - 1]int
 	var state State_enum
 	var floor int
-	var dir int
+	var serveDirection int
 	state = WAIT
-
 	order.InitMatrix(&orderMatrix)
 	InitMatrix(&unprocessedOrdersMatrix)
 
@@ -51,10 +51,8 @@ func StateMachine(orders_local_elevator_chan <-chan [elevtypes.N_FLOORS][elevtyp
 		for {
 			select {
 			case orderMatrix := <-orders_local_elevator_chan:
-				fmt.Println("oppdaterer Ordermatrix...")
 				status.OrderMatrix = orderMatrix
 			case unprocessedOrdersMatrix := <-orders_external_elevator_chan:
-				fmt.Println("Oppdaterer unprocessedOrdersMatrix..")
 				status.UnprocessedOrdersMatrix = unprocessedOrdersMatrix
 			}
 		}
@@ -67,9 +65,9 @@ func StateMachine(orders_local_elevator_chan <-chan [elevtypes.N_FLOORS][elevtyp
 			}
 			fmt.Println(floor)
 			status.CurFloor = floor
-			status.Dir = dir
+			status.Dir = serveDirection
 			status_update_chan <- status
-			time.Sleep(1000 * time.Millisecond)
+			time.Sleep(20 * time.Millisecond)
 		}
 	}()
 
@@ -78,33 +76,109 @@ func StateMachine(orders_local_elevator_chan <-chan [elevtypes.N_FLOORS][elevtyp
 			time.Sleep(10 * time.Millisecond)
 			switch state {
 			case WAIT:
-				wait(orderMatrix, &state)
-				/*case RUN:
-					run(orderList, &state)
-				case OPEN:
-					open()*/
+				wait(orderMatrix, &state, &serveDirection)
+			case RUN_UP:
+				runUp(orderMatrix, &state, &serveDirection)
+			case RUN_DOWN:
+				runDown(orderMatrix, &state, &serveDirection)
+			case OPEN:
+				open()
 			}
 		}
 	}()
 }
+func open() {
+	driver.SetSpeed(0)
+}
 
-func wait(orderMatrix [elevtypes.N_FLOORS][elevtypes.N_BUTTONS]int, state *State_enum) {
-
+func wait(orderMatrix [elevtypes.N_FLOORS][elevtypes.N_BUTTONS]int, state *State_enum, serveDirection *int) {
+	curFloor := driver.GetFloorSensorSignal()
 	for i := 0; i < elevtypes.N_FLOORS; i++ {
 		for j := 0; j < elevtypes.N_BUTTONS; j++ {
-			if orderMatrix[i][j] == 1 {
-				time.Sleep(1 * time.Second)
-				fmt.Println("Matrix not empty...")
+			if orderMatrix[i][0] == 1 { //Serve Order Up
+				if curFloor == i { //Order In Current Floor
+					*state = OPEN
+					break
+				} else if curFloor < i { //Going Up
+					*state = RUN_UP
+					*serveDirection = 0
+					break
+				} else { //Going Down
+					*state = RUN_DOWN
+					*serveDirection = 0
+					break
+				}
+			} else if orderMatrix[i][1] == 1 { //Serve Order Down
+				if curFloor == i {
+					*state = OPEN //Order In Currrent Floor
+					break
+				} else if curFloor < i {
+					*state = RUN_UP //Going Up
+					*serveDirection = 1
+					break
+				} else { //Going Down
+					*state = RUN_DOWN
+					*serveDirection = 1
+					break
+				}
+			} else if orderMatrix[i][2] == 1 { //Serve Internal
+				if curFloor == i { //Order In Current Floor
+					*state = OPEN
+					break
+				} else if curFloor < i { //Going Up
+					*state = RUN_UP
+					*serveDirection = 0
+					break
+				} else { //Going Down
+					*state = RUN_DOWN
+					*serveDirection = 1
+					break
+				}
 			}
 		}
 	}
 }
 
-/*func run(orderList []Order, state *elevtypes.State_enum) {
+func runUp(orderMatrix [elevtypes.N_FLOORS][elevtypes.N_BUTTONS]int, state *State_enum, serveDirection *int) {
+	driver.SetSpeed(300)
+	curFloor := driver.GetFloorSensorSignal()
+	//HIT FLOOR
+	if curFloor != -1 {
+		//Serving orders UP
+		if *serveDirection == 0 {
+			if orderMatrix[curFloor][0] == 1 || orderMatrix[curFloor][2] == 1 {
+				*state = OPEN
+			}
+		}
+		//Serving orders DOWN
+		if *serveDirection == 1 {
+			if orderMatrix[curFloor][1] == 1 || orderMatrix[curFloor][2] == 1 {
+				*state = OPEN
+			}
+		}
+	}
+}
 
+func runDown(orderMatrix [elevtypes.N_FLOORS][elevtypes.N_BUTTONS]int, state *State_enum, serveDirection *int) {
+	driver.SetSpeed(-300)
+	curFloor := driver.GetFloorSensorSignal()
+	//HIT FLOOR
+	if curFloor != -1 {
+		//Serving orders UP
+		if *serveDirection == 0 {
+			if orderMatrix[curFloor][0] == 1 || orderMatrix[curFloor][2] == 1 {
+				*state = OPEN
+			}
 
-
-}*/
+		}
+		//Serving orders DOWN
+		if *serveDirection == 1 {
+			if orderMatrix[curFloor][1] == 1 || orderMatrix[curFloor][2] == 1 {
+				*state = OPEN
+			}
+		}
+	}
+}
 
 /*
 func run(thisOrder Order, previous_floor_chan chan Order, state *elevtypes.State_enum, state_update_chan chan elevtypes.State_enum) {

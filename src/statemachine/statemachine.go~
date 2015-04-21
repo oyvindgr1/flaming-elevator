@@ -74,7 +74,7 @@ func StateMachine(orders_local_elevator_chan chan [elevtypes.N_FLOORS][elevtypes
 	go func() {
 		for {
 			time.Sleep(10 * time.Millisecond)
-			fmt.Println("\nSTATE : ", state)
+			//fmt.Println("\nSTATE : ", state)
 			switch state {
 			case WAIT:
 				wait(status.OrderMatrix, &state, &serveDirection, &runDirection)
@@ -82,28 +82,24 @@ func StateMachine(orders_local_elevator_chan chan [elevtypes.N_FLOORS][elevtypes
 			case RUN_UP:
 				runUp(status.OrderMatrix, &state, &serveDirection)
 				//order.PrintMatrix(status.OrderMatrix)
-				fmt.Println("HIEHIEHEIEHIEHIE")
 			case RUN_DOWN:
 				runDown(status.OrderMatrix, &state, &serveDirection)
 				//order.PrintMatrix(status.OrderMatrix)
 			case OPEN:
-				open(orders_local_elevator_chan, &status.OrderMatrix, &state, runDirection, &serveDirection)
+				open(orders_local_elevator_chan, status.OrderMatrix, &state, runDirection, &serveDirection)
 				//order.PrintMatrix(status.OrderMatrix)
 			}
 		}
 	}()
 }
-func open(orders_local_elevator_chan chan [elevtypes.N_FLOORS][elevtypes.N_BUTTONS]int, orderMatrix *[elevtypes.N_FLOORS][elevtypes.N_BUTTONS]int, state *State_enum, runDirection int, serveDirection *int) {
+func open(orders_local_elevator_chan chan [elevtypes.N_FLOORS][elevtypes.N_BUTTONS]int, orderMatrix [elevtypes.N_FLOORS][elevtypes.N_BUTTONS]int, state *State_enum, runDirection int, serveDirection *int) {
 	elevatorBrake(runDirection)
 	curFloor := driver.GetFloorSensorSignal()
 	driver.SetDoorOpenLamp(1)
 	time.Sleep(3 * time.Second)
 	driver.SetDoorOpenLamp(0)
-	orderMatrix[curFloor][2] = 0
 	order.DeleteOrder(curFloor, 2, orders_local_elevator_chan)
-	fmt.Println("\nServedirection: ", *serveDirection)
 	if *serveDirection == 0 {
-		orderMatrix[curFloor][0] = 0
 		order.DeleteOrder(curFloor, 0, orders_local_elevator_chan)
 		for i := curFloor+1; i < elevtypes.N_FLOORS; i++ {
 			if orderMatrix[i][0] == 1 || orderMatrix[i][2] == 1 {
@@ -112,7 +108,6 @@ func open(orders_local_elevator_chan chan [elevtypes.N_FLOORS][elevtypes.N_BUTTO
 			}
 		}
 	} else if *serveDirection == 1 {
-		orderMatrix[curFloor][1] = 0
 		order.DeleteOrder(curFloor, 1, orders_local_elevator_chan)
 		for i := 0; i < curFloor-1; i++ {
 			if orderMatrix[i][1] == 1 || orderMatrix[i][2] == 1 {
@@ -129,7 +124,6 @@ func wait(orderMatrix [elevtypes.N_FLOORS][elevtypes.N_BUTTONS]int, state *State
 	for i := 0; i < elevtypes.N_FLOORS; i++ {
 		for j := 0; j < elevtypes.N_BUTTONS; j++ {
 			if orderMatrix[i][0] == 1 { //Serve Order Up
-				fmt.Println("UP ")
 				if curFloor == i { //Order In Current Floor
 					*state = OPEN
 					*serveDirection = 0
@@ -146,7 +140,6 @@ func wait(orderMatrix [elevtypes.N_FLOORS][elevtypes.N_BUTTONS]int, state *State
 					return
 				}
 			} else if orderMatrix[i][1] == 1 { //Serve Order Down
-				fmt.Println("DOWN ")
 				if curFloor == i {
 					*state = OPEN //Order In Currrent Floor
 					*serveDirection = 1
@@ -163,7 +156,6 @@ func wait(orderMatrix [elevtypes.N_FLOORS][elevtypes.N_BUTTONS]int, state *State
 					return
 				}
 			} else if orderMatrix[i][2] == 1 { //Serve Internal
-				fmt.Println("INTERNAL ")
 				if curFloor == i { //Order In Current Floor
 					*state = OPEN
 					*serveDirection = -1
@@ -228,58 +220,7 @@ func runDown(orderMatrix [elevtypes.N_FLOORS][elevtypes.N_BUTTONS]int, state *St
 	}
 }
 
-/*
-func run(thisOrder Order, previous_floor_chan chan Order, state *elevtypes.State_enum, state_update_chan chan elevtypes.State_enum) {
-	if *state != Running {
-		*state = Running
-		driver.SetSpeed(300 * thisOrder.Dir)
-		state_update_chan <- Running
-	}
-	cur_floor = driver.GetFloorSensorSignal()
-	if cur_floor != -1 {
-		selfOrder := Order{}
-		selfOrder.Dir = thisOrder.Dir
-		selfOrder.Floor = cur_floor
-		previous_floor_chan <- selfOrder
-		driver.SetLightFloorIndicator(cur_floor)
-		if cur_floor == thisOrder.Floor {
-			ElevatorBrake(thisOrder.Dir)
-			return FLOOR_REACHED
-		}
-	if cur_floor == thisOrder.Floor {
-		ElevatorBrake(thisOrder.Floor)
-		return FLOOR_REACHED
-		}
-	}
-	return NEW_ORDER
- }
 
-
-
-func door(state_update_chan chan elevtypes.State_enum, state *elevtypes.State_enum) {
-	if driver.GetFloorSensorSignal() != -1 {
-		if *state != Door {
-			*state = Door
-			state_update_chan <- Door
-			driver.SetDoorOpenLamp(1)
-		}
-		time.Sleep(3*time.Second)
-		driver.SetDoorOpenLamp(0)
-		return NEW_ORDER
-	} else {
-		return UNDEFINED
-	}
-
-}
-
-func undefined(state_update_chan chan elevtypes.State_enum, state *elevtypes.State_enum)
-	if *state != Undefined {
-		*state = Undefined
-		state_update_chan <- Undefined
-	}
-	return UNDEFINED
-}
-*/
 func elevatorBrake(dir int) {
 	driver.SetSpeed(dir * 100)
 	time.Sleep(time.Millisecond * 20)

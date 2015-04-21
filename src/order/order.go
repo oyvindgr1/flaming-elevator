@@ -40,19 +40,20 @@ func OrderListener(orders_local_elevator_chan chan<- [elevtypes.N_FLOORS][elevty
 					}
 				}
 			}
-			PrintMatrix(orderMatrix)
+			//fmt.Println("\norderMatrix local order module: ")
+			//PrintMatrix(orderMatrix)
 		}
 	}()
 }
 
-func OrdersFromNetwork(orders_local_elevator_chan chan<- [elevtypes.N_FLOORS][elevtypes.N_BUTTONS]int, statusmap_send_chan <-chan map[string]elevtypes.Status) {
+func OrdersFromNetwork(orders_local_elevator_chan chan<- [elevtypes.N_FLOORS][elevtypes.N_BUTTONS]int, statusmap_send_chan <-chan map[string]elevtypes.Status, orders_external_elevator_chan chan<- [elevtypes.N_FLOORS][elevtypes.N_BUTTONS - 1]int) {
 	for {
 		select {
 		case statusMap := <-statusmap_send_chan:
 			for key, _ := range statusMap {
 				if !MatrixIsEmpty(statusMap[key].UnprocessedOrdersMatrix) {
 					CostFunction(orders_local_elevator_chan, statusMap)
-					checkUnprocessedMatrix(statusMap)
+					CheckUnprocessedMatrix(statusMap, orders_external_elevator_chan)
 				}
 			}
 		}
@@ -60,12 +61,13 @@ func OrdersFromNetwork(orders_local_elevator_chan chan<- [elevtypes.N_FLOORS][el
 	}
 }
 
-func checkUnprocessedMatrix(statusMap map[string]elevtypes.Status) {
+func CheckUnprocessedMatrix(statusMap map[string]elevtypes.Status, orders_external_elevator_chan chan<- [elevtypes.N_FLOORS][elevtypes.N_BUTTONS - 1]int) {
 	for key, _ := range statusMap {
 		for i := 0; i < elevtypes.N_FLOORS; i++ {
 			for j := 0; j < elevtypes.N_BUTTONS-1; j++ {
 				if unprocessedOrdersMatrix[i][j] == statusMap[key].UnprocessedOrdersMatrix[i][j] {
 					unprocessedOrdersMatrix[i][j] = 0
+					orders_external_elevator_chan <- unprocessedOrdersMatrix
 				}
 			}
 		}

@@ -72,8 +72,8 @@ func checkUnprocessedMatrix(statusMap map[string]elevtypes.Status) {
 	}
 }
 
-func CostFunction(statusMap map[string]elevtypes.Status) {
-	fmt.Println("In Costfunction.")
+func CostFunction(orders_local_elevator_chan chan<- [elevtypes.N_FLOORS][elevtypes.N_BUTTONS]int,statusMap map[string]elevtypes.Status) {
+	//fmt.Println("In Costfunction.")
 	var orderFloor int
 	var orderType int
 	var penaltyMap map[string]int
@@ -92,7 +92,7 @@ func CostFunction(statusMap map[string]elevtypes.Status) {
 	}
 	for key, _ := range statusMap {
 		penaltyMap[key] = AbsoluteValue(orderFloor - statusMap[key].CurFloor)
-		if orderType != statusMap[key].Dir {
+		if orderType != statusMap[key].ServeDirection {
 			penaltyMap[key] = penaltyMap[key] + 4
 		}
 	}
@@ -101,15 +101,13 @@ func CostFunction(statusMap map[string]elevtypes.Status) {
 		if penaltyMap[key] < lowestPenalty {
 			lowestPenalty = penaltyMap[key]
 			lowestPenaltyIP = key
-			fmt.Println("Penalty: ", lowestPenalty)
+			//fmt.Println("Penalty: ", lowestPenalty)
 		}
 	}
 	if strings.Split(lowestPenaltyIP, ":")[0] == network.GetIP() {
 		orderMatrix[orderFloor][orderType] = 1
 		orders_local_elevator_chan <- orderMatrix
 	}
-
-	//PrintMatrix(orderMatrix)
 }
 
 func AbsoluteValue(value int) int {
@@ -153,69 +151,4 @@ func PrintMatrix(matrix [elevtypes.N_FLOORS][elevtypes.N_BUTTONS]int) {
 	}
 }
 
-/*
-func OrderAppend(orderList_chan <-chan []Order, orders_local_elev_chan chan elevtypes.Order) {
-	for {
-		select {
-		case newOrder := <-orders_local_elev_chan:
-			isInList = false
-			if !IsInOrderList(orderList, newOrder) {
-				orderList = append(orderList, newOrder)
-				orderList_chan <- orderList
-				fmt.Printf("Floor of new order: %d, Type of new order: %d\n", newOrder.Floor, newOrder.Dir)
-			}
-		}
-	}
-}()
-//ORDER_UP = 0, ORDER_DOWN = 1, ORDER_INTERNAL = 2
-func OrderDelete(orderType int, order Order) {
 
-
-
-}*/
-
-/*
-
-	go func() {
-		for {
-			select {
-			case resetAll := <- reset_all:
-				for i := 0; i < N_FLOORS; i++ {
-						list[ORDER_DOWN][i] = false
-						list[ORDER_UP][i] = false
-					}
-			case resetFloor := <- reset_button:
-				ButtonMatrix[resetFloor.Dir][resetFloor.Floor] = false
-			}
-		}
-	}()
-
-
-
-
-func Init() {
-
-
-	orderList := make(map[string][N_FLOORS][N_BUTTON]bool)
-
-	Order_struct =
-	orderChannel = make(chan ordersToExecute)
-}
-
-func UnprocessedOrderListGenerator( OrderMatrix [][]bool) {
-
-	for {
-		select {
-			case internalOrder <- orderInternal
-
-
-
-}
-
-func IsInOrderList(orderList []Order, order elevtypes.Order) bool {
-	for i,_ := range orderList {
-		if order == orderList[i] {
-			return true
-		}
-	}
-}*/

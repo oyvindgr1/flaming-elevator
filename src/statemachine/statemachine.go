@@ -94,7 +94,7 @@ func StateMachine(orders_local_elevator_chan <-chan [elevtypes.N_FLOORS][elevtyp
 	}()
 }
 func open(serveDirection int) {
-	elevatorBrake(serveDirection)
+	driver.SetSpeed(0)
 }
 
 func wait(orderMatrix [elevtypes.N_FLOORS][elevtypes.N_BUTTONS]int, state *State_enum, serveDirection *int) {

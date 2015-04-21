@@ -248,11 +248,11 @@ func undefined(state_update_chan chan elevtypes.State_enum, state *elevtypes.Sta
 */
 func elevatorBrake(dir int) {
 	if dir == 0 {
-		driver.SetSpeed(-1 * 300)
+		driver.SetSpeed(1 * 300)
 		time.Sleep(time.Millisecond * 20)
 		driver.SetSpeed(0)
 	} else if dir == 1 {
-		driver.SetSpeed(1 * 300)
+		driver.SetSpeed(-1 * 300)
 		time.Sleep(time.Millisecond * 20)
 		driver.SetSpeed(0)
 	}

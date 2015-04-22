@@ -43,7 +43,7 @@ func SendStatus(status_send_chan <-chan elevtypes.Status) {
 	}
 }
 
-func ReadStatus(statusmap_send_chan chan<- map[string]elevtypes.Status, netIsAlive chan<- bool) {
+func ReadStatus(statusmap_send_chan chan<- map[string]elevtypes.Status, netIsAlive chan<- bool, kanal chan<- [elevtypes.N_FLOORS][elevtypes.N_BUTTONS]int) {
 	var statusMap map[string]elevtypes.Status
 	statusMap = make(map[string]elevtypes.Status)
 	var respondingElevatorList []string 
@@ -100,6 +100,7 @@ func ReadStatus(statusmap_send_chan chan<- map[string]elevtypes.Status, netIsAli
 			for key, _ := range statusMap {
 				if !isInList(respondingElevatorList, key) {
 					if isLowestIP(respondingElevatorList, key) {
+						kanal <- statusMap[key].OrderMatrix
 						fmt.Println("HIDHFSDHFKSDJFHSKDJFHKDSJFHK")
 					}				
 				}

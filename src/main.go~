@@ -15,7 +15,8 @@ func main() {
 	
 	statusmap_chan := make(chan map[string]elevtypes.Status, 1)
 	status_chan := make(chan elevtypes.Status, 1)
-
+	
+	orders_from_unresponsive_elev_chan := make(chan [elevtypes.N_FLOORS][elevtypes.N_BUTTONS]int, 1)
 	orders_local_elev_chan := make(chan [elevtypes.N_FLOORS][elevtypes.N_BUTTONS]int, 1)
 	orders_external_elev_chan := make(chan [elevtypes.N_FLOORS][elevtypes.N_BUTTONS - 1]int, 1)
 
@@ -48,7 +49,7 @@ func main() {
 	anIP2 = "129.241.187.141"
 	astring2 := strings.Split(anIP2, ".")
 
-	if astring[3] < astring2[3] {
+	if astring[3] > astring2[3] {
 		fmt.Println("Success ")
 	}
 	 
@@ -62,10 +63,11 @@ func main() {
 	
 	
 	go order.OrderListener(orders_local_elev_chan, orders_external_elev_chan)
-	go order.OrdersFromNetwork(orders_local_elev_chan, statusmap_chan,orders_external_elev_chan)
+	go order.OrdersFromNetwork(orders_local_elev_chan, statusmap_chan,orders_external_elev_chan, orders_from_unresponsive_elev_chan)
+	go order.ErrorRecovery()
 	
 	go network.SendStatus(status_chan)
-	go network.ReadStatus(statusmap_chan, netIsAlive)
+	go network.ReadStatus(statusmap_chan, netIsAlive, orders_todo_elev_chan)
 
 
 	go statemachine.StateMachine(orders_local_elev_chan, orders_external_elev_chan, status_chan)

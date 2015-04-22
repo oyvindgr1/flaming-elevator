@@ -46,16 +46,18 @@ func OrderListener(orders_local_elevator_chan chan<- [elevtypes.N_FLOORS][elevty
 	}()
 }
 
-func OrdersFromNetwork(orders_local_elevator_chan chan<- [elevtypes.N_FLOORS][elevtypes.N_BUTTONS]int, statusmap_send_chan <-chan map[string]elevtypes.Status, orders_external_elevator_chan chan<- [elevtypes.N_FLOORS][elevtypes.N_BUTTONS - 1]int) {
+func OrdersFromNetwork(orders_local_elevator_chan chan<- [elevtypes.N_FLOORS][elevtypes.N_BUTTONS]int, statusmap_send_chan <-chan map[string]elevtypes.Status, orders_external_elevator_chan chan<- [elevtypes.N_FLOORS][elevtypes.N_BUTTONS - 1]int, orders_from_unresponsive_elev_chan <-chan [elevtypes.N_FLOORS][elevtypes.N_BUTTONS]int) {
 	for {
 		select {
 		case statusMap := <-statusmap_send_chan:
 			for key, _ := range statusMap {
-				if !MatrixIsEmpty(statusMap[key].UnprocessedOrdersMatrix) {
+				if !unprocessedOrdersMatrixIsEmpty(statusMap[key].UnprocessedOrdersMatrix) {
 					costFunction(orders_local_elevator_chan, statusMap)
 					checkUnprocessedMatrix(statusMap, orders_external_elevator_chan)
 				}
 			}
+		case newOrderMatrix := <-orders_from_unresponsive_elev_chan:
+			addOrdersToUnprocessedMatrix(newOrderMatrix)
 		}
 
 	}
@@ -77,10 +79,11 @@ func checkUnprocessedMatrix(statusMap map[string]elevtypes.Status, orders_extern
 func ErrorRecovery() {
 	for {	
 		prevOrderMatrix := orderMatrix
-		time.Sleep(5 * time.Second)
+		time.Sleep(10 * time.Second)
 		if !orderMatrixIsEmpty(orderMatrix) && orderMatricesEqual(orderMatrix, prevOrderMatrix) {
-			//disconnect 2 secs from network
-			//phoenix
+			for i := 0; i < 20; i++ {
+				fmt.Println("Order Matrix unchanged in 10 seconds and not empty!")
+			}
 		}
 	}
 }
@@ -124,6 +127,16 @@ func costFunction(orders_local_elevator_chan chan<- [elevtypes.N_FLOORS][elevtyp
 	}
 }
 
+func addOrdersToUnprocessedMatrix(newOrderMatrix [elevtypes.N_FLOORS][elevtypes.N_BUTTONS]int) {
+	for x := 0; x < elevtypes.N_FLOORS; x++ {
+		for y := 0; y < elevtypes.N_BUTTONS-1; y++ {
+			if newOrderMatrix[x][y] == 1 {
+				unprocessedOrdersMatrix[x][y] = 1
+			}
+		}
+	}						
+}
+
 func AbsoluteValue(value int) int {
 	if value < 0 {
 		return -value
@@ -143,7 +156,7 @@ func orderMatricesEqual(orderMatrix [elevtypes.N_FLOORS][elevtypes.N_BUTTONS]int
 	return true
 }
 
-func UnprocessedOrdersMatrixIsEmpty(matrix [elevtypes.N_FLOORS][elevtypes.N_BUTTONS - 1]int) bool {
+func unprocessedOrdersMatrixIsEmpty(matrix [elevtypes.N_FLOORS][elevtypes.N_BUTTONS - 1]int) bool {
 	for x := 0; x < elevtypes.N_FLOORS; x++ {
 		for y := 0; y < elevtypes.N_BUTTONS-1; y++ {
 			if matrix[x][y] == 1 {
@@ -153,7 +166,7 @@ func UnprocessedOrdersMatrixIsEmpty(matrix [elevtypes.N_FLOORS][elevtypes.N_BUTT
 	}
 	return true
 }
-func OrderMatrixIsEmpty(matrix [elevtypes.N_FLOORS][elevtypes.N_BUTTONS]int) bool {
+func orderMatrixIsEmpty(matrix [elevtypes.N_FLOORS][elevtypes.N_BUTTONS]int) bool {
 	for x := 0; x < elevtypes.N_FLOORS; x++ {
 		for y := 0; y < elevtypes.N_BUTTONS; y++ {
 			if matrix[x][y] == 1 {

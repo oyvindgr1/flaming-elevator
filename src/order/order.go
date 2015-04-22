@@ -42,6 +42,7 @@ func OrderListener(orders_local_elevator_chan chan<- [elevtypes.N_FLOORS][elevty
 			}
 			//fmt.Println("\norderMatrix local order module: ")
 			//PrintMatrix(orderMatrix)
+			//PrintUnprocessedOrdersMatrix(unprocessedOrdersMatrix)
 		}
 	}()
 }
@@ -57,7 +58,9 @@ func OrdersFromNetwork(orders_local_elevator_chan chan<- [elevtypes.N_FLOORS][el
 				}
 			}
 		case newOrderMatrix := <-orders_from_unresponsive_elev_chan:
+			//PrintMatrix(newOrderMatrix)
 			addOrdersToUnprocessedMatrix(newOrderMatrix)
+
 		}
 
 	}
@@ -67,7 +70,7 @@ func checkUnprocessedMatrix(statusMap map[string]elevtypes.Status, orders_extern
 	for key, _ := range statusMap {
 		for i := 0; i < elevtypes.N_FLOORS; i++ {
 			for j := 0; j < elevtypes.N_BUTTONS-1; j++ {
-				if unprocessedOrdersMatrix[i][j] == statusMap[key].UnprocessedOrdersMatrix[i][j] {
+				if unprocessedOrdersMatrix[i][j] == statusMap[key].OrderMatrix[i][j] {
 					unprocessedOrdersMatrix[i][j] = 0
 					orders_external_elevator_chan <- unprocessedOrdersMatrix
 				}
@@ -199,4 +202,13 @@ func PrintMatrix(matrix [elevtypes.N_FLOORS][elevtypes.N_BUTTONS]int) {
 	}
 }
 
+func PrintUnprocessedOrdersMatrix(matrix [elevtypes.N_FLOORS][elevtypes.N_BUTTONS-1]int) {
+	fmt.Println("\nFloor \t UP \t DOWN \t INTERNAL")
+	for i := 0; i < elevtypes.N_FLOORS; i++ {
+		fmt.Printf("\n %d \t", i+1)
+		for j := 0; j < elevtypes.N_BUTTONS -1; j++ {
+			fmt.Printf("%d \t ", matrix[i][j])
+		}
+	}
+}
 

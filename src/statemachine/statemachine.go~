@@ -166,7 +166,6 @@ func wait(orderMatrix [elevtypes.N_FLOORS][elevtypes.N_BUTTONS]int, state *State
 					*runDirection = -1
 					return
 				} else { //Going Down
-					fmt.Println("GOING DOWN ")
 					*state = RUN_DOWN
 					*serveDirection = 1
 					*runDirection = 1
@@ -179,7 +178,6 @@ func wait(orderMatrix [elevtypes.N_FLOORS][elevtypes.N_BUTTONS]int, state *State
 
 func runUp(orderMatrix [elevtypes.N_FLOORS][elevtypes.N_BUTTONS]int, state *State_enum, serveDirection *int) {
 	driver.SetSpeed(300)
-	fmt.Println("GOING UP")
 	curFloor := driver.GetFloorSensorSignal()
 	//HIT FLOOR
 	if curFloor != -1 {
@@ -200,7 +198,6 @@ func runUp(orderMatrix [elevtypes.N_FLOORS][elevtypes.N_BUTTONS]int, state *Stat
 
 func runDown(orderMatrix [elevtypes.N_FLOORS][elevtypes.N_BUTTONS]int, state *State_enum, serveDirection *int) {
 	driver.SetSpeed(-300)
-	fmt.Println("GOING DOWN ")
 	curFloor := driver.GetFloorSensorSignal()
 	//HIT FLOOR
 	if curFloor != -1 {

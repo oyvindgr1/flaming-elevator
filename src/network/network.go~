@@ -81,10 +81,10 @@ func ReadStatus(statusmap_send_chan chan<- map[string]elevtypes.Status, netIsAli
 					statusMap[raddr.String()] = msg
 					includeElevator(&respondingElevatorList, raddr.String() )
 					statusmap_send_chan <- statusMap
-					for key, _ := range statusMap {
+					/*for key, _ := range statusMap {
 						fmt.Printf(" \nIP: %s  \n", key)
 						PrintMatrix(statusMap[key].OrderMatrix)
-					}
+					}*/
 				}
 			}
 			
@@ -96,16 +96,27 @@ func ReadStatus(statusmap_send_chan chan<- map[string]elevtypes.Status, netIsAli
 		for {
 			respondingElevatorList = respondingElevatorList[:0]
 			time.Sleep(1 * time.Second)
-			for i,_ := range respondingElevatorList {
+			/*for i,_ := range respondingElevatorList {
 				fmt.Printf("Elevator nr. %d: %s \n", i, respondingElevatorList[i])	
-			}
+			}*/
 			for key, _ := range statusMap {
 				if !isInList(respondingElevatorList, key) {
-					fmt.Println("HIDHFSDHFKSDJFHSKDJFHKDSJFHK")					
-					//PrintMatrix(statusMap[key].OrderMatrix)					
-					OutDatedStatusMap = statusMap
+					//fmt.Println("HIDHFSDHFKSDJFHSKDJFHKDSJFHK")					
+					PrintMatrix(statusMap[key].OrderMatrix)					
+					//OutDatedStatusMap = statusMap
+					for key, v := range statusMap {
+						OutDatedStatusMap[key] = v 
+						
+						
+						/*for i := 0; i < elevtypes.N_FLOORS; i++ {
+							for j := 0; j < elevtypes.N_BUTTONS; j++ {
+								OutDatedStatusMap[key].OrderMatrix[i][j] = statusMap[key].OrderMatrix[i][j]
+							}
+						}*/
+					
+					}
 					delete(statusMap, key)
-					//PrintMatrix(OutDatedStatusMap[key].OrderMatrix)
+					PrintMatrix(OutDatedStatusMap[key].OrderMatrix)
 					if isLowestIP(respondingElevatorList, key) {
 						orders_from_unresponsive_elev_chan <- OutDatedStatusMap[key].OrderMatrix
 						//PrintMatrix(OutDatedStatusMap[key].OrderMatrix)
@@ -136,7 +147,7 @@ func isLowestIP(respondingElevatorList []string, nonRespondingIP string) bool {
 		}
 		fmt.Println("Current IP: ", curIP[3])*/
 	}
-	fmt.Println("Lowest IP: ", lowestIP)
+	//fmt.Println("Lowest IP: ", lowestIP)
 	ownIP, err2 := strconv.Atoi(localIP[3])
 	if err2 != nil {
 			fmt.Println(err2)
@@ -178,6 +189,13 @@ func PrintMatrix(matrix [elevtypes.N_FLOORS][elevtypes.N_BUTTONS]int) {
 		fmt.Printf("\n %d \t", i)
 		for j := 0; j < elevtypes.N_BUTTONS; j++ {
 			fmt.Printf("%d \t ", matrix[i][j])
+		}
+	}
+}
+func InitMatrix(matrix *[elevtypes.N_FLOORS][elevtypes.N_BUTTONS]int) {
+	for x := 0; x < elevtypes.N_FLOORS; x++ {
+		for y := 0; y < elevtypes.N_BUTTONS; y++ {
+			matrix[x][y] = 0
 		}
 	}
 }

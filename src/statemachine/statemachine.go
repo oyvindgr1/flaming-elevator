@@ -67,7 +67,7 @@ func StateMachine(orders_local_elevator_chan chan [elevtypes.N_FLOORS][elevtypes
 			status.CurFloor = floor
 			status.ServeDirection = serveDirection
 			status_update_chan <- status
-			time.Sleep(2000 * time.Millisecond)
+			time.Sleep(500 * time.Millisecond)
 		}
 	}()
 

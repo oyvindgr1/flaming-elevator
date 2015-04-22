@@ -96,30 +96,15 @@ func ReadStatus(statusmap_send_chan chan<- map[string]elevtypes.Status, netIsAli
 		for {
 			respondingElevatorList = respondingElevatorList[:0]
 			time.Sleep(1 * time.Second)
-			/*for i,_ := range respondingElevatorList {
-				fmt.Printf("Elevator nr. %d: %s \n", i, respondingElevatorList[i])	
-			}*/
 			for key, _ := range statusMap {
 				if !isInList(respondingElevatorList, key) {
-					//fmt.Println("HIDHFSDHFKSDJFHSKDJFHKDSJFHK")					
 					PrintMatrix(statusMap[key].OrderMatrix)					
-					//OutDatedStatusMap = statusMap
 					for key, v := range statusMap {
 						OutDatedStatusMap[key] = v 
-						
-						
-						/*for i := 0; i < elevtypes.N_FLOORS; i++ {
-							for j := 0; j < elevtypes.N_BUTTONS; j++ {
-								OutDatedStatusMap[key].OrderMatrix[i][j] = statusMap[key].OrderMatrix[i][j]
-							}
-						}*/
-					
 					}
 					delete(statusMap, key)
-					PrintMatrix(OutDatedStatusMap[key].OrderMatrix)
 					if isLowestIP(respondingElevatorList, key) {
 						orders_from_unresponsive_elev_chan <- OutDatedStatusMap[key].OrderMatrix
-						//PrintMatrix(OutDatedStatusMap[key].OrderMatrix)
 												
 						
 					}				

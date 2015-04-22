@@ -98,7 +98,7 @@ func ReadStatus(statusmap_send_chan chan<- map[string]elevtypes.Status, netIsAli
 			time.Sleep(1 * time.Second)
 			for key, _ := range statusMap {
 				if !isInList(respondingElevatorList, key) {
-					PrintMatrix(statusMap[key].OrderMatrix)					
+					//PrintMatrix(statusMap[key].OrderMatrix)					
 					for key, v := range statusMap {
 						OutDatedStatusMap[key] = v 
 					}

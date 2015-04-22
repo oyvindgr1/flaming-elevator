@@ -67,7 +67,8 @@ func StateMachine(orders_local_elevator_chan chan [elevtypes.N_FLOORS][elevtypes
 			status.CurFloor = floor
 			status.ServeDirection = serveDirection
 			status_update_chan <- status
-			time.Sleep(2000 * time.Millisecond)
+			time.Sleep(500 * time.Millisecond)
+			setLights(statusMap)
 		}
 	}()
 
@@ -217,6 +218,19 @@ func runDown(orderMatrix [elevtypes.N_FLOORS][elevtypes.N_BUTTONS]int, state *St
 	}
 }
 
+func setLights(statusMap map[string]elevtypes.Status) {
+	for key, _ := range statusMap {
+		for i := 0; i < elevtypes.N_FLOORS; i++ {
+			for j := 0; j < elevtypes.N_BUTTONS; j++ {
+				if statusMap[key].OrderMatrix[i][j] == 1 {
+					driver.SetButtonLamp(j, i, 1)
+				}else{
+					driver.SetButtonLamp(j, i, 0)
+				}
+			}
+		}
+	}
+}
 
 func elevatorBrake(dir int) {
 	driver.SetSpeed(dir * 100)

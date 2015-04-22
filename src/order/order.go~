@@ -50,13 +50,14 @@ func OrderListener(orders_local_elevator_chan chan<- [elevtypes.N_FLOORS][elevty
 func OrdersFromNetwork(orders_local_elevator_chan chan<- [elevtypes.N_FLOORS][elevtypes.N_BUTTONS]int, statusmap_send_chan <-chan map[string]elevtypes.Status, orders_external_elevator_chan chan<- [elevtypes.N_FLOORS][elevtypes.N_BUTTONS - 1]int, orders_from_unresponsive_elev_chan <-chan [elevtypes.N_FLOORS][elevtypes.N_BUTTONS]int) {
 	var statusMap map[string]elevtypes.Status
 	statusMap = make(map[string]elevtypes.Status)
-	//var prevStatusMap map[string]elevtypes.Status
-	//prevStatusMap = make(map[string]elevtypes.Status)
+	var prevStatusMap map[string]elevtypes.Status
+	prevStatusMap = make(map[string]elevtypes.Status)
 	printCounter := 0
 	for {
 		for key, v := range statusMap {
 			prevStatusMap[key] = v
 		}
+		setLights(statusMap)
 		select {
 		case statusMap = <-statusmap_send_chan:
 			for key2, _ := range statusMap {
@@ -67,8 +68,8 @@ func OrdersFromNetwork(orders_local_elevator_chan chan<- [elevtypes.N_FLOORS][el
 			}
 			for key3, _ := range statusMap {
 				if !orderMatricesEqual(statusMap[key3].OrderMatrix, prevStatusMap[key3].OrderMatrix) {
+					fmt.Printf("Printnumber: %d \n", printCounter)
 					printStatusMap(statusMap)
-					//fmt.Printf("Printnumber: %d \n", printCounter)
 					printCounter = printCounter +1
 				}
 			}
@@ -76,6 +77,18 @@ func OrdersFromNetwork(orders_local_elevator_chan chan<- [elevtypes.N_FLOORS][el
 			//PrintMatrix(newOrderMatrix)
 			addOrdersToUnprocessedMatrix(newOrderMatrix)
 
+		}
+	}
+}
+
+func setLights(statusMap map[string]elevtypes.Status) {
+	for key, _ := range statusMap {
+		for i := 0; i < elevtypes.N_FLOORS; i++ {
+			for j := 0; j < elevtypes.N_BUTTONS; j++ {
+				if statusMap[key].OrderMatrix[i][j] == 1 {
+					driver.SetButtonLamp(j, i, 1)
+				}
+			}
 		}
 	}
 }

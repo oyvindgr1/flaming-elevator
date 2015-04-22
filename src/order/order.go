@@ -67,8 +67,8 @@ func OrdersFromNetwork(orders_local_elevator_chan chan<- [elevtypes.N_FLOORS][el
 			}
 			for key3, _ := range statusMap {
 				if !orderMatricesEqual(statusMap[key3].OrderMatrix, prevStatusMap[key3].OrderMatrix) {
+					fmt.Printf("Printnumber: %d \n", printCounter)
 					printStatusMap(statusMap)
-					//fmt.Printf("Printnumber: %d \n", printCounter)
 					printCounter = printCounter +1
 				}
 			}
@@ -79,6 +79,8 @@ func OrdersFromNetwork(orders_local_elevator_chan chan<- [elevtypes.N_FLOORS][el
 		}
 	}
 }
+
+
 
 func printStatusMap(statusMap map[string]elevtypes.Status) {
 	for key, _ := range statusMap {

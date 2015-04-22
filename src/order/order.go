@@ -76,7 +76,7 @@ func checkUnprocessedMatrix(statusMap map[string]elevtypes.Status, orders_extern
 	}
 }
 
-func ErrorRecovery() {
+/*func ErrorRecovery() {
 	for {	
 		prevOrderMatrix := orderMatrix
 		time.Sleep(10 * time.Second)
@@ -86,7 +86,7 @@ func ErrorRecovery() {
 			}
 		}
 	}
-}
+}*/
 
 	
 func costFunction(orders_local_elevator_chan chan<- [elevtypes.N_FLOORS][elevtypes.N_BUTTONS]int,statusMap map[string]elevtypes.Status) {

@@ -81,7 +81,9 @@ func ErrorRecovery() {
 		prevOrderMatrix := orderMatrix
 		time.Sleep(10 * time.Second)
 		if !orderMatrixIsEmpty(orderMatrix) && orderMatricesEqual(orderMatrix, prevOrderMatrix) {
-			fmt.Println("Order Matrix unchanged in 10 seconds and not empty!")
+			for i := 0; i < 20; i++ {
+				fmt.Println("Order Matrix unchanged in 10 seconds and not empty!")
+			}
 		}
 	}
 }

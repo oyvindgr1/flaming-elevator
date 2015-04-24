@@ -260,17 +260,20 @@ func PrintUnprocessedOrdersMatrix(matrix [elevtypes.N_FLOORS][elevtypes.N_BUTTON
 }
 
 func setLights(statusMap map[string]elevtypes.Status) {
-	for key, _ := range statusMap {
-		for i := 0; i < elevtypes.N_FLOORS; i++ {
-			for j := 0; j < elevtypes.N_BUTTONS -1; j++ {
+	for i := 0; i < elevtypes.N_FLOORS; i++ {
+		for j := 0; j < elevtypes.N_BUTTONS -1; j++ {
+			lightOn := 0
+			for key, _ := range statusMap {
 				if statusMap[key].OrderMatrix[i][j] == 1 {
-					driver.SetButtonLamp(j, i, 1)
+					lightOn = 1
 				} else{
-					driver.SetButtonLamp(j, i, 0)
-				}
+					lightOn = 0
+				}			
 			}
+			driver.SetButtonLamp(j, i, lightOn)
 		}
 	}
+	
 	for i := 0; i < elevtypes.N_FLOORS; i++ {
 		if orderMatrix[i][2] == 1 {
 			driver.SetButtonLamp(2, i, 1)

@@ -71,7 +71,7 @@ func OrdersFromNetwork(orders_local_elevator_chan chan<- [elevtypes.N_FLOORS][el
 				}
 			}
 			for key3, _ := range statusMap {
-				if !orderMatricesEqual(statusMap[key3].OrderMatrix, prevStatusMap[key3].OrderMatrix) {
+				if !orderMatricesEqual(statusMap[key3].OrderMatrix, prevStatusMap[key3].OrderMatrix) || statusMap[key3].CurFloor != prevStatusMap[key3].CurFloor {
 					fmt.Printf("Printnumber: %d \n", printCounter)
 					printStatusMap(statusMap)
 					printCounter = printCounter +1
@@ -260,17 +260,20 @@ func PrintUnprocessedOrdersMatrix(matrix [elevtypes.N_FLOORS][elevtypes.N_BUTTON
 }
 
 func setLights(statusMap map[string]elevtypes.Status) {
-	for key, _ := range statusMap {
-		for i := 0; i < elevtypes.N_FLOORS; i++ {
-			for j := 0; j < elevtypes.N_BUTTONS -1; j++ {
+	for i := 0; i < elevtypes.N_FLOORS; i++ {
+		for j := 0; j < elevtypes.N_BUTTONS -1; j++ {
+			lightOn := 0
+			for key, _ := range statusMap {
 				if statusMap[key].OrderMatrix[i][j] == 1 {
-					driver.SetButtonLamp(j, i, 1)
+					lightOn = 1
 				} else{
-					driver.SetButtonLamp(j, i, 0)
-				}
+					lightOn = 0
+				}			
 			}
+			driver.SetButtonLamp(j, i, lightOn)
 		}
 	}
+	
 	for i := 0; i < elevtypes.N_FLOORS; i++ {
 		if orderMatrix[i][2] == 1 {
 			driver.SetButtonLamp(2, i, 1)

@@ -103,7 +103,7 @@ func printStatusMap(statusMap map[string]elevtypes.Status) {
 	for i := 0; i < elevtypes.N_FLOORS; i++ {
 		for key2, _ := range statusMap {
 			fmt.Printf(" %d \t %d \t %d \t %d   \t", i +1, statusMap[key2].OrderMatrix[i][0], statusMap[key2].OrderMatrix[i][1], statusMap[key2].OrderMatrix[i][2])
-			if statusMap[key2].CurFloor == i-1 {
+			if statusMap[key2].CurFloor == i {
 				fmt.Printf("   [] ")
 			} else{
 				fmt.Printf("   -  ")
@@ -275,9 +275,7 @@ func setLights(statusMap map[string]elevtypes.Status) {
 			for key, _ := range statusMap {
 				if statusMap[key].OrderMatrix[i][j] == 1 {
 					lightOn = 1
-				} else{
-					lightOn = 0
-				}			
+				} 		
 			}
 			driver.SetButtonLamp(j, i, lightOn)
 		}

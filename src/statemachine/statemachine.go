@@ -65,6 +65,7 @@ func StateMachine(orders_local_elevator_chan chan [elevtypes.N_FLOORS][elevtypes
 			if driver.GetFloorSensorSignal() != -1 {
 				floor = driver.GetFloorSensorSignal()
 			}
+			driver.SetLightFloorIndicator(floor)
 			status.CurFloor = floor
 			status.ServeDirection = serveDirection
 			status_update_chan <- status
@@ -76,7 +77,7 @@ func StateMachine(orders_local_elevator_chan chan [elevtypes.N_FLOORS][elevtypes
 	go func() {
 		for {
 			time.Sleep(10 * time.Millisecond)
-			fmt.Println("\nSTATE : ", state)
+			//fmt.Println("\nSTATE : ", state)
 			switch state {
 			case WAIT:
 				wait(status.OrderMatrix, &state, &serveDirection, &runDirection)

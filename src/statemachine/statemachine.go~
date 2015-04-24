@@ -65,6 +65,7 @@ func StateMachine(orders_local_elevator_chan chan [elevtypes.N_FLOORS][elevtypes
 			if driver.GetFloorSensorSignal() != -1 {
 				floor = driver.GetFloorSensorSignal()
 			}
+			SetLightFloorIndicator(floor)
 			status.CurFloor = floor
 			status.ServeDirection = serveDirection
 			status_update_chan <- status

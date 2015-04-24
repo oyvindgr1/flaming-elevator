@@ -275,9 +275,7 @@ func setLights(statusMap map[string]elevtypes.Status) {
 			for key, _ := range statusMap {
 				if statusMap[key].OrderMatrix[i][j] == 1 {
 					lightOn = 1
-				} else{
-					lightOn = 0
-				}			
+				} 		
 			}
 			driver.SetButtonLamp(j, i, lightOn)
 		}

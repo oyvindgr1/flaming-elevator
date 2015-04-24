@@ -76,7 +76,7 @@ func StateMachine(orders_local_elevator_chan chan [elevtypes.N_FLOORS][elevtypes
 	go func() {
 		for {
 			time.Sleep(10 * time.Millisecond)
-			//fmt.Println("\nSTATE : ", state)
+			fmt.Println("\nSTATE : ", state)
 			switch state {
 			case WAIT:
 				wait(status.OrderMatrix, &state, &serveDirection, &runDirection)
@@ -96,29 +96,32 @@ func StateMachine(orders_local_elevator_chan chan [elevtypes.N_FLOORS][elevtypes
 }
 func open(orders_local_elevator_chan chan [elevtypes.N_FLOORS][elevtypes.N_BUTTONS]int, orderMatrix [elevtypes.N_FLOORS][elevtypes.N_BUTTONS]int, state *State_enum, runDirection int, serveDirection *int) {
 	elevatorBrake(runDirection)
+	time.Sleep(500 * time.Millisecond)
 	curFloor := driver.GetFloorSensorSignal()
-	driver.SetDoorOpenLamp(1)
-	time.Sleep(3 * time.Second)
-	driver.SetDoorOpenLamp(0)
-	order.DeleteOrder(curFloor, 2, orders_local_elevator_chan)
-	if *serveDirection == 0 {
-		order.DeleteOrder(curFloor, 0, orders_local_elevator_chan)
-		for i := curFloor+1; i < elevtypes.N_FLOORS; i++ {
-			if orderMatrix[i][0] == 1 || orderMatrix[i][2] == 1 {
-				*state = RUN_UP
-				return
+	if curFloor != -1 {
+		driver.SetDoorOpenLamp(1)
+		time.Sleep(2 * time.Second)
+		driver.SetDoorOpenLamp(0)
+		order.DeleteOrder(curFloor, 2, orders_local_elevator_chan)
+		if *serveDirection == 0 {
+			order.DeleteOrder(curFloor, 0, orders_local_elevator_chan)
+			for i := curFloor+1; i < elevtypes.N_FLOORS; i++ {
+				if orderMatrix[i][0] == 1 || orderMatrix[i][2] == 1 {
+					*state = RUN_UP
+					return
+				}
+			}
+		} else if *serveDirection == 1 {
+			order.DeleteOrder(curFloor, 1, orders_local_elevator_chan)
+			for i := 0; i < curFloor-1; i++ {
+				if orderMatrix[i][1] == 1 || orderMatrix[i][2] == 1 {
+					*state = RUN_DOWN
+					return
+				}
 			}
 		}
-	} else if *serveDirection == 1 {
-		order.DeleteOrder(curFloor, 1, orders_local_elevator_chan)
-		for i := 0; i < curFloor-1; i++ {
-			if orderMatrix[i][1] == 1 || orderMatrix[i][2] == 1 {
-				*state = RUN_DOWN
-				return
-			}
-		}
+		*state = WAIT
 	}
-	*state = WAIT
 }
 
 func wait(orderMatrix [elevtypes.N_FLOORS][elevtypes.N_BUTTONS]int, state *State_enum, serveDirection *int, runDirection *int) {

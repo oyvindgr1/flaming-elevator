@@ -67,8 +67,8 @@ func StateMachine(orders_local_elevator_chan chan [elevtypes.N_FLOORS][elevtypes
 			status.CurFloor = floor
 			status.ServeDirection = serveDirection
 			status_update_chan <- status
-			time.Sleep(50 * time.Millisecond)
 			status.WorkLoad = sumOfOrders(orderMatrix)
+			time.Sleep(50 * time.Millisecond)
 			//fmt.Println("\nservedir: ",serveDirection)
 		}
 	}()
@@ -225,6 +225,19 @@ func elevatorBrake(dir int) {
 	driver.SetSpeed(dir * 100)
 	time.Sleep(time.Millisecond * 20)
 	driver.SetSpeed(0)
+}
+
+func sumOfOrders(orderMatrix [elevtypes.N_FLOORS][elevtypes.N_BUTTONS]int) int {
+	counter := 0
+	for x := 0; x < elevtypes.N_FLOORS; x++ {
+		for y := 0; y < elevtypes.N_BUTTONS; y++ {
+			if orderMatrix[x][y] == 1 {
+				counter = counter + 1
+			}
+		
+		}
+	}
+	return counter
 }
 
 func InitMatrix(matrix *[elevtypes.N_FLOORS][elevtypes.N_BUTTONS - 1]int) {

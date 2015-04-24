@@ -87,12 +87,16 @@ func OrdersFromNetwork(orders_local_elevator_chan chan<- [elevtypes.N_FLOORS][el
 }
 
 func printStatusMap(statusMap map[string]elevtypes.Status) {
+	for range statusMap {
+		fmt.Printf("----------------------------------------")
+	}
+	fmt.Printf("\n")
 	for key, _ := range statusMap {
 		fmt.Printf("IP: %s \t\t\t ", key)
 	}
-	fmt.Printf("\n")
+	fmt.Printf("\n\n")
 	for  range statusMap {
-		fmt.Printf("Floor     UP   DOWN   INTERNAL  \t\t\t ")
+		fmt.Printf("Floor     UP   DOWN   INTERNAL  \t\t ")
 	}
 	
 	fmt.Printf("\n\n")
@@ -100,13 +104,20 @@ func printStatusMap(statusMap map[string]elevtypes.Status) {
 		for key2, _ := range statusMap {
 			fmt.Printf(" %d \t %d \t %d \t %d   \t", i +1, statusMap[key2].OrderMatrix[i][0], statusMap[key2].OrderMatrix[i][1], statusMap[key2].OrderMatrix[i][2])
 			if statusMap[key2].CurFloor == i {
-				fmt.Printf("   []  ")
+				fmt.Printf("   [] ")
 			} else{
 				fmt.Printf("   -  ")
 			}
 			fmt.Printf("         ")
 		}
 		fmt.Printf("\n")
+	}
+	for key2, _ := range statusMap {
+		fmt.Printf("ServeDirection: %d \t\t\t\t\t\t", statusMap[key2].ServeDirection)
+	}
+	fmt.Printf("\n")
+	for key2, _ := range statusMap {
+		fmt.Printf("WorkLoad:       %d \t\t\t\t\t\t", statusMap[key2].WorkLoad)
 	}
 	fmt.Printf("\n\n\n")
 }
@@ -124,7 +135,7 @@ func checkUnprocessedMatrix(statusMap map[string]elevtypes.Status, orders_extern
 	}
 }
 
-/*func ErrorRecovery() {
+func ErrorRecovery() {
 	for {
 		prevOrderMatrix := orderMatrix
 		time.Sleep(10 * time.Second)
@@ -134,7 +145,7 @@ func checkUnprocessedMatrix(statusMap map[string]elevtypes.Status, orders_extern
 			}
 		}
 	}
-}*/
+}
 
 func costFunction(orders_local_elevator_chan chan<- [elevtypes.N_FLOORS][elevtypes.N_BUTTONS]int, statusMap map[string]elevtypes.Status) {
 	fmt.Println("In Costfunction.")

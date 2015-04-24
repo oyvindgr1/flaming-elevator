@@ -62,7 +62,7 @@ func main() {
 	
 	go order.OrderListener(orders_local_elev_chan, orders_external_elev_chan)
 	go order.OrdersFromNetwork(orders_local_elev_chan, statusmap_chan,orders_external_elev_chan, orders_from_unresponsive_elev_chan)
-	//go order.ErrorRecovery()
+	go order.ErrorRecovery()
 	
 	go network.SendStatus(status_chan)
 	go network.ReadStatus(statusmap_chan, netIsAlive, orders_from_unresponsive_elev_chan)

@@ -53,6 +53,7 @@ func StateMachine(orders_local_elevator_chan chan [elevtypes.N_FLOORS][elevtypes
 			select {
 			case orderMatrix := <-orders_local_elevator_chan:
 				status.OrderMatrix = orderMatrix
+				status.WorkLoad = sumOfOrders(orderMatrix)
 			case unprocessedOrdersMatrix := <-orders_external_elevator_chan:
 				status.UnprocessedOrdersMatrix = unprocessedOrdersMatrix
 			}
@@ -67,7 +68,6 @@ func StateMachine(orders_local_elevator_chan chan [elevtypes.N_FLOORS][elevtypes
 			status.CurFloor = floor
 			status.ServeDirection = serveDirection
 			status_update_chan <- status
-			status.WorkLoad = sumOfOrders(orderMatrix)
 			time.Sleep(50 * time.Millisecond)
 			//fmt.Println("\nservedir: ",serveDirection)
 		}
@@ -232,12 +232,12 @@ func sumOfOrders(orderMatrix [elevtypes.N_FLOORS][elevtypes.N_BUTTONS]int) int {
 	for x := 0; x < elevtypes.N_FLOORS; x++ {
 		for y := 0; y < elevtypes.N_BUTTONS; y++ {
 			if orderMatrix[x][y] == 1 {
-				counter++
+				counter = counter + 1
 			}
 		
 		}
 	}
-
+	return counter
 }
 
 func InitMatrix(matrix *[elevtypes.N_FLOORS][elevtypes.N_BUTTONS - 1]int) {

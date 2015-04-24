@@ -65,7 +65,7 @@ func StateMachine(orders_local_elevator_chan chan [elevtypes.N_FLOORS][elevtypes
 			if driver.GetFloorSensorSignal() != -1 {
 				floor = driver.GetFloorSensorSignal()
 			}
-			SetLightFloorIndicator(floor)
+			driver.SetLightFloorIndicator(floor)
 			status.CurFloor = floor
 			status.ServeDirection = serveDirection
 			status_update_chan <- status
@@ -77,7 +77,7 @@ func StateMachine(orders_local_elevator_chan chan [elevtypes.N_FLOORS][elevtypes
 	go func() {
 		for {
 			time.Sleep(10 * time.Millisecond)
-			//fmt.Println("\nSTATE : ", state)
+		//	fmt.Println("\nSTATE : ", state)
 			switch state {
 			case WAIT:
 				wait(status.OrderMatrix, &state, &serveDirection, &runDirection)
@@ -106,7 +106,7 @@ func open(orders_local_elevator_chan chan [elevtypes.N_FLOORS][elevtypes.N_BUTTO
 		order.DeleteOrder(curFloor, 2, orders_local_elevator_chan)
 		if *serveDirection == 0 {
 			order.DeleteOrder(curFloor, 0, orders_local_elevator_chan)
-			for i := curFloor+1; i < elevtypes.N_FLOORS; i++ {
+			for i := curFloor + 1; i < elevtypes.N_FLOORS; i++ {
 				if orderMatrix[i][0] == 1 || orderMatrix[i][2] == 1 {
 					*state = RUN_UP
 					return
@@ -126,7 +126,7 @@ func open(orders_local_elevator_chan chan [elevtypes.N_FLOORS][elevtypes.N_BUTTO
 }
 
 func wait(orderMatrix [elevtypes.N_FLOORS][elevtypes.N_BUTTONS]int, state *State_enum, serveDirection *int, runDirection *int) {
-	*serveDirection = -1	
+	*serveDirection = -1
 	curFloor := driver.GetFloorSensorSignal()
 	for i := 0; i < elevtypes.N_FLOORS; i++ {
 		for j := 0; j < elevtypes.N_BUTTONS; j++ {
@@ -186,6 +186,7 @@ func wait(orderMatrix [elevtypes.N_FLOORS][elevtypes.N_BUTTONS]int, state *State
 func runUp(orderMatrix [elevtypes.N_FLOORS][elevtypes.N_BUTTONS]int, state *State_enum, serveDirection *int) {
 	driver.SetSpeed(300)
 	curFloor := driver.GetFloorSensorSignal()
+	curFloorIsLastRemainingOrder := true
 	//HIT FLOOR
 	if curFloor != -1 {
 		//Serving orders UP
@@ -196,7 +197,12 @@ func runUp(orderMatrix [elevtypes.N_FLOORS][elevtypes.N_BUTTONS]int, state *Stat
 		}
 		//Serving orders DOWN
 		if *serveDirection == 1 {
-			if orderMatrix[curFloor][1] == 1 || orderMatrix[curFloor][2] == 1 {
+			for i := curFloor + 1; i < elevtypes.N_FLOORS; i++ {
+				if orderMatrix[i][1] == 1 {
+					curFloorIsLastRemainingOrder = false
+				}
+			}
+			if orderMatrix[curFloor][1] == 1 && curFloorIsLastRemainingOrder || orderMatrix[curFloor][2] == 1 {
 				*state = OPEN
 			}
 		}
@@ -206,11 +212,19 @@ func runUp(orderMatrix [elevtypes.N_FLOORS][elevtypes.N_BUTTONS]int, state *Stat
 func runDown(orderMatrix [elevtypes.N_FLOORS][elevtypes.N_BUTTONS]int, state *State_enum, serveDirection *int) {
 	driver.SetSpeed(-300)
 	curFloor := driver.GetFloorSensorSignal()
+	curFloorIsLastRemainingOrder := true
 	//HIT FLOOR
 	if curFloor != -1 {
 		//Serving orders UP
 		if *serveDirection == 0 {
-			if orderMatrix[curFloor][0] == 1 || orderMatrix[curFloor][2] == 1 {
+			//fmt.Println("HJHSKDJHASKDHSAKDHKSAHDKJSADHKAS")
+			for i := 0; i < curFloor-2; i++ {
+				if orderMatrix[i][0] == 1 {
+					curFloorIsLastRemainingOrder = false
+					//fmt.Println("HJHSKDJHASKDHSAKDHKSAHDKJSADHKAS")
+				}
+			}
+			if orderMatrix[curFloor][0] == 1 && curFloorIsLastRemainingOrder || orderMatrix[curFloor][2] == 1 {
 				*state = OPEN
 			}
 
@@ -223,7 +237,6 @@ func runDown(orderMatrix [elevtypes.N_FLOORS][elevtypes.N_BUTTONS]int, state *St
 		}
 	}
 }
-
 
 func elevatorBrake(dir int) {
 	driver.SetSpeed(dir * 100)
@@ -238,7 +251,7 @@ func sumOfOrders(orderMatrix [elevtypes.N_FLOORS][elevtypes.N_BUTTONS]int) int {
 			if orderMatrix[x][y] == 1 {
 				counter = counter + 1
 			}
-		
+
 		}
 	}
 	return counter

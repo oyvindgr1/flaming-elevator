@@ -103,7 +103,7 @@ func ReadStatus(statusmap_send_chan chan<- map[string]elevtypes.Status, netIsAli
 						OutDatedStatusMap[key] = v 
 					}
 					delete(statusMap, key)
-					if isLowestIP(respondingElevatorList, key) {
+					if IsLowestIP(respondingElevatorList) {
 						orders_from_unresponsive_elev_chan <- OutDatedStatusMap[key].OrderMatrix
 												
 						
@@ -114,7 +114,7 @@ func ReadStatus(statusmap_send_chan chan<- map[string]elevtypes.Status, netIsAli
 	}()
 }
 
-func isLowestIP(respondingElevatorList []string, nonRespondingIP string) bool {
+func IsLowestIP(respondingElevatorList []string) bool {
 	lowestIP := 1000
 	localIP := strings.Split(GetIP(), ".")
 	for i,_ := range respondingElevatorList {

@@ -136,12 +136,20 @@ func checkUnprocessedMatrix(statusMap map[string]elevtypes.Status, orders_extern
 	}
 }
 
-/*func ErrorRecovery() {
+func ErrorRecovery() {
 	for {
 		prevOrderMatrix := orderMatrix
 		time.Sleep(10 * time.Second)
 		if !orderMatrixIsEmpty(orderMatrix) && orderMatricesEqual(orderMatrix, prevOrderMatrix) {
-			cmd := exec.Command("gnome-terminal", "-x", "sh", "-c", "go run main.go")
+			fmt.Println("Hiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii")
+			driver.Init()
+		}
+	}
+}
+
+/*
+
+cmd := exec.Command("gnome-terminal", "-x", "sh", "-c", "go run main.go")
 			err1 := cmd.Run()
 			if err1 != nil {
 				fmt.Println("Error with spawning backup: ", err1)
@@ -152,10 +160,8 @@ func checkUnprocessedMatrix(statusMap map[string]elevtypes.Status, orders_extern
 			if err2 != nil {
 				fmt.Println("Error with spawning backup: ", err2)
 				return
-			}
-		}
-	}
-}*/
+				
+				*/
 
 func costFunction(orders_local_elevator_chan chan<- [elevtypes.N_FLOORS][elevtypes.N_BUTTONS]int, statusMap map[string]elevtypes.Status) {
 	//fmt.Println("In Costfunction.")

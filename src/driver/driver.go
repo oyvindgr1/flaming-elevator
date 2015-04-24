@@ -4,6 +4,7 @@ import (
 	"elevtypes"
 	"fmt"
 	"math"
+	"time"
 )
 
 //ORDER_UP = 0, ORDER_DOWN = 1, ORDER_INTERNAL = 2
@@ -47,6 +48,17 @@ func Init() int {
 	SetStopLamp(0)
 	SetDoorOpenLamp(0)
 	SetLightFloorIndicator(0)
+	if GetFloorSensorSignal() != -1 {
+		} else {
+			SetSpeed(-1 * 300)
+			floor := GetFloorSensorSignal()
+			for floor == -1 {
+				floor = GetFloorSensorSignal()
+			}
+		SetSpeed(100)
+		time.Sleep(time.Millisecond * 20)
+		SetSpeed(0)
+		}
 	return 1
 }
 

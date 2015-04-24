@@ -3,7 +3,7 @@ package statemachine
 import (
 	"driver"
 	"elevtypes"
-	"fmt"
+	//"fmt"
 	"order"
 	"time"
 )
@@ -17,7 +17,7 @@ const (
 	OPEN
 )
 
-func ElevatorInit() int {
+/*func ElevatorInit() int {
 	init := driver.Init()
 	if init == 0 {
 		return 0
@@ -34,7 +34,7 @@ func ElevatorInit() int {
 		fmt.Printf("Initialized\n")
 		return 1
 	}
-}
+}*/
 
 func StateMachine(orders_local_elevator_chan chan [elevtypes.N_FLOORS][elevtypes.N_BUTTONS]int, orders_external_elevator_chan <-chan [elevtypes.N_FLOORS][elevtypes.N_BUTTONS - 1]int, status_update_chan chan<- elevtypes.Status) {
 	var status elevtypes.Status

@@ -82,10 +82,8 @@ func OrdersFromNetwork(orders_local_elevator_chan chan<- [elevtypes.N_FLOORS][el
 			addOrdersToUnprocessedMatrix(newOrderMatrix)
 			orders_external_elevator_chan <- unprocessedOrdersMatrix
 			//PrintUnprocessedOrdersMatrix(unprocessedOrdersMatrix)
-
 		}
 	}
-	
 }
 
 func printStatusMap(statusMap map[string]elevtypes.Status) {

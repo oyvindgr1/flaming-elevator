@@ -82,10 +82,8 @@ func OrdersFromNetwork(orders_local_elevator_chan chan<- [elevtypes.N_FLOORS][el
 			addOrdersToUnprocessedMatrix(newOrderMatrix)
 			orders_external_elevator_chan <- unprocessedOrdersMatrix
 			//PrintUnprocessedOrdersMatrix(unprocessedOrdersMatrix)
-
 		}
 	}
-	
 }
 
 func printStatusMap(statusMap map[string]elevtypes.Status) {
@@ -158,9 +156,9 @@ func costFunction(orders_local_elevator_chan chan<- [elevtypes.N_FLOORS][elevtyp
 		fmt.Printf("IP1 : %s, \n", key)
 	}
 	for key, _ := range statusMap {
-		penaltyMap[key] = AbsoluteValue(orderFloor - statusMap[key].CurFloor)
+		penaltyMap[key] = AbsoluteValue(orderFloor - statusMap[key].CurFloor + statusMap[key].WorkLoad)
 		if orderType != statusMap[key].ServeDirection {
-			penaltyMap[key] = penaltyMap[key] + 4
+			penaltyMap[key] = penaltyMap[key] + 4 
 		}
 	}
 	lowestPenalty = 100

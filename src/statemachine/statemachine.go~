@@ -68,7 +68,8 @@ func StateMachine(orders_local_elevator_chan chan [elevtypes.N_FLOORS][elevtypes
 			status.ServeDirection = serveDirection
 			status_update_chan <- status
 			time.Sleep(50 * time.Millisecond)
-			fmt.Println("\nservedir: ",serveDirection)
+			status.WorkLoad = sumOfOrders(orderMatrix)
+			//fmt.Println("\nservedir: ",serveDirection)
 		}
 	}()
 

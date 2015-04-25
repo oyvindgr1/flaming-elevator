@@ -20,7 +20,6 @@ func main() {
 	
 	go order.LocalOrderListener(orders_local_elev_chan, orders_external_elev_chan)
 	go order.OrdersFromNetworkListener(orders_local_elev_chan, elevator_status_map_chan,orders_external_elev_chan, orders_from_unresponsive_elev_chan)
-	go order.ErrorRecovery()
 	go network.SendElevatorStatus(elevator_status_chan)
 	go network.ReadElevatorStatus(elevator_status_map_chan, orders_from_unresponsive_elev_chan)
 	go statemachine.LocalElevatorController(orders_local_elev_chan, orders_external_elev_chan, elevator_status_chan)

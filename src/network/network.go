@@ -30,14 +30,12 @@ func SendElevatorStatus(elevator_status_send_chan <-chan elevtypes.ElevatorStatu
 				fmt.Println(err_Json)
 			}
 
-			for i := 0; i < 4; i++ {
-				_, err1 := elevator_status_sender.Write(b)
-				if err1 != nil {
-					fmt.Println("Error writing data to server. Waiting for 10 seconds before sending again.")
-					time.Sleep(10 * time.Second)
-					fmt.Println(err1)
-					break
-				}
+			_, err1 := elevator_status_sender.Write(b)
+			if err1 != nil {
+				fmt.Println("Error writing data to server. Waiting for 10 seconds before sending again.")
+				time.Sleep(10 * time.Second)
+				fmt.Println(err1)
+				break
 			}
 		}
 	}

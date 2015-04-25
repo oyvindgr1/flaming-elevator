@@ -72,7 +72,7 @@ func ReadElevatorStatus(elevator_status_map_send_chan chan<- map[string]elevtype
 					fmt.Println("Error decoding client msg")
 				} else {
 					elevatorStatusMap[raddr.String()] = msg
-					includeElevator(&respondingElevatorList, raddr.String() )
+					includeRespondingElevator(&respondingElevatorList, raddr.String())
 					elevator_status_map_send_chan <- elevatorStatusMap
 				}
 			}
@@ -93,7 +93,7 @@ func ReadElevatorStatus(elevator_status_map_send_chan chan<- map[string]elevtype
 						OutDatedElevatorStatusMap[key] = v 
 					}
 					delete(elevatorStatusMap, key)
-					if IsLowestIP(respondingElevatorList) {
+					if LocalIPIsLowest(respondingElevatorList) {
 						orders_from_unresponsive_elev_chan <- OutDatedElevatorStatusMap[key].OrderMatrix
 												
 						
@@ -104,7 +104,7 @@ func ReadElevatorStatus(elevator_status_map_send_chan chan<- map[string]elevtype
 	}()
 }
 
-func IsLowestIP(respondingElevatorList []string) bool {
+func LocalIPIsLowest(respondingElevatorList []string) bool {
 	lowestIP := 1000
 	localIP := strings.Split(GetIP(), ".")
 	for i,_ := range respondingElevatorList {
@@ -138,7 +138,7 @@ func isInList(respondingElevators []string, elevatorIP string) bool {
 	}
 	return false
 }
-func includeElevator(respondingElevatorList *[]string, elevatorIP string ) {
+func includeRespondingElevator(respondingElevatorList *[]string, elevatorIP string ) {
 	if !isInList(*respondingElevatorList, elevatorIP) {
 		*respondingElevatorList = append(*respondingElevatorList, elevatorIP)
 	}		 

@@ -7,6 +7,7 @@ import (
 	"network"
 	"strings"
 	"time"
+	"sort"
 )
 
 var orderMatrix [elevtypes.N_FLOORS][elevtypes.N_BUTTONS]int
@@ -46,51 +47,74 @@ func OrdersFromNetworkListener(orders_local_elevator_chan chan<- [elevtypes.N_FL
 	var prevElevatorStatusMap map[string]elevtypes.ElevatorStatus
 	prevElevatorStatusMap = make(map[string]elevtypes.ElevatorStatus)
 	printCounter := 0
-	for {
-		setLights(elevatorStatusMap)
-		for key, v := range elevatorStatusMap {
-			prevElevatorStatusMap[key] = v	
-		}
-		select {
-		case elevatorStatusMap = <-elevator_status_map_send_chan:
-			for key2, _ := range elevatorStatusMap {
-				if !unassignedOrdersMatrixIsEmpty(elevatorStatusMap[key2].UnassignedOrdersMatrix) {
-					costFunction(orders_local_elevator_chan, elevatorStatusMap)
-					confirmOrderAssignment(elevatorStatusMap, orders_external_elevator_chan)
-				}
+	
+	//Listen to orders from network
+	go func() {
+		for {
+			for key, v := range elevatorStatusMap {
+				prevElevatorStatusMap[key] = v	
 			}
-			for key3, _ := range elevatorStatusMap {
-				if !orderMatricesEqual(elevatorStatusMap[key3].OrderMatrix, prevElevatorStatusMap[key3].OrderMatrix) || elevatorStatusMap[key3].CurFloor != prevElevatorStatusMap[key3].CurFloor {
-					fmt.Printf("Printnumber: %d \n", printCounter)
-					printStatusMap(elevatorStatusMap)
-					printCounter = printCounter +1
+			select {
+			case elevatorStatusMap = <-elevator_status_map_send_chan:
+				for key2, _ := range elevatorStatusMap {
+					if !unassignedOrdersMatrixIsEmpty(elevatorStatusMap[key2].UnassignedOrdersMatrix) {
+						costFunction(orders_local_elevator_chan, elevatorStatusMap)
+						confirmOrderAssignment(elevatorStatusMap, orders_external_elevator_chan)
+					}
 				}
+				for key3, _ := range elevatorStatusMap {
+					if !orderMatricesEqual(elevatorStatusMap[key3].OrderMatrix, prevElevatorStatusMap[key3].OrderMatrix) || elevatorStatusMap[key3].CurFloor != prevElevatorStatusMap[key3].CurFloor {
+						fmt.Printf("Printnumber: %d \n", printCounter)
+						printStatusMap(elevatorStatusMap)
+						printCounter = printCounter +1
+					}
+				}
+			case newOrderMatrix := <-orders_from_unresponsive_elev_chan:
+				time.Sleep(1 * time.Second)
+				addOrdersToUnprocessedMatrix(newOrderMatrix)
+				orders_external_elevator_chan <- unassignedOrdersMatrix
 			}
-		case newOrderMatrix := <-orders_from_unresponsive_elev_chan:
-			time.Sleep(1 * time.Second)
-			addOrdersToUnprocessedMatrix(newOrderMatrix)
-			orders_external_elevator_chan <- unassignedOrdersMatrix
 		}
-	}
+	}()
+
+	//Set the Order button lights and internal lights, locally, as the Status map has been received from the network
+	go func() {
+		for {
+			time.Sleep(50 * time.Millisecond)
+			setLights(elevatorStatusMap)
+		}
+	}()
 }
 
 func printStatusMap(elevatorStatusMap map[string]elevtypes.ElevatorStatus) {
+	
+	
+	var keys []string
+	for k := range elevatorStatusMap {
+	    keys = append(keys, k)
+	}
+	sort.Strings(keys)
+
+
+
+
+
 	for range elevatorStatusMap {
 		fmt.Printf("----------------------------------------")
 	}
 	fmt.Printf("\n")
-	for key, _ := range elevatorStatusMap {
-		fmt.Printf("IP: %s \t\t\t ", key)
+	for i, _ := range keys {
+		fmt.Printf("IP: %s \t\t\t ", keys[i])
 	}
 	fmt.Printf("\n\n")
-	for  range elevatorStatusMap {
+	for  range keys {
 		fmt.Printf("Floor     UP   DOWN   INTERNAL  \t\t ")
 	}
 	
 	fmt.Printf("\n\n")
-	for i := 0; i < elevtypes.N_FLOORS; i++ {
-		for key2, _ := range elevatorStatusMap {
-			fmt.Printf(" %d \t %d \t %d \t %d   \t", i +1, elevatorStatusMap[key2].OrderMatrix[i][0], elevatorStatusMap[key2].OrderMatrix[i][1], elevatorStatusMap[key2].OrderMatrix[i][2])
+	for i := elevtypes.N_FLOORS-1; i >= 0  ; i-- {
+		for _, key2 := range keys {
+			fmt.Printf(" %d \t %d \t %d \t %d   \t  ", i +1, elevatorStatusMap[key2].OrderMatrix[i][0], elevatorStatusMap[key2].OrderMatrix[i][1], elevatorStatusMap[key2].OrderMatrix[i][2])
 			if elevatorStatusMap[key2].CurFloor == i {
 				fmt.Printf("   [] ")
 			} else{
@@ -100,12 +124,18 @@ func printStatusMap(elevatorStatusMap map[string]elevtypes.ElevatorStatus) {
 		}
 		fmt.Printf("\n")
 	}
-	for key2, _ := range elevatorStatusMap {
-		fmt.Printf("ServeDirection: %d \t\t\t\t\t\t", elevatorStatusMap[key2].ServeDirection)
+	for _, key2 := range keys {
+		if elevatorStatusMap[key2].ServeDirection == 0 {
+			fmt.Printf("ServeDirection:  UP     \t\t\t")
+		}else if elevatorStatusMap[key2].ServeDirection == 1 {
+			fmt.Printf("ServeDirection: DOWN    \t\t\t")
+		}else {
+			fmt.Printf("ServeDirection: UNDEFINED    \t\t\t")
+		}
 	}
 	fmt.Printf("\n")
-	for key2, _ := range elevatorStatusMap {
-		fmt.Printf("WorkLoad:       %d \t\t\t\t\t\t", elevatorStatusMap[key2].WorkLoad)
+	for _, key2 := range keys {
+		fmt.Printf("WorkLoad:       %d \t\t\t\t", elevatorStatusMap[key2].WorkLoad)
 	}
 	fmt.Printf("\n\n\n")
 }
@@ -151,7 +181,7 @@ func costFunction(orders_local_elevator_chan chan<- [elevtypes.N_FLOORS][elevtyp
 		for key, _ := range penaltyMap {
 			equalPenaltyList = append(equalPenaltyList, key)
 		}
-		if network.IsLowestIP(equalPenaltyList) {
+		if network.LocalIPIsLowest(equalPenaltyList) {
 			orderMatrix[orderFloor][orderType] = 1
 			orders_local_elevator_chan <- orderMatrix		
 		}

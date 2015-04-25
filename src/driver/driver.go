@@ -4,16 +4,9 @@ import (
 	"elevtypes"
 	"fmt"
 	"math"
+	"time"
 )
 
-//ORDER_UP = 0, ORDER_DOWN = 1, ORDER_INTERNAL = 2
-
-/*type OrderDirection int
-const (
-	ORDER_UP OrderDirection = iota
-	ORDER_DOWN
-	ORDER_INTERNAL
-)*/
 var lampChannelMatrix = [elevtypes.N_FLOORS][elevtypes.N_BUTTONS]int{
 	{LIGHT_UP1, LIGHT_DOWN1, LIGHT_COMMAND1},
 	{LIGHT_UP2, LIGHT_DOWN2, LIGHT_COMMAND2},
@@ -47,6 +40,17 @@ func Init() int {
 	SetStopLamp(0)
 	SetDoorOpenLamp(0)
 	SetLightFloorIndicator(0)
+	if GetFloorSensorSignal() != -1 {
+		} else {
+			SetSpeed(-1 * 300)
+			floor := GetFloorSensorSignal()
+			for floor == -1 {
+				floor = GetFloorSensorSignal()
+			}
+		SetSpeed(100)
+		time.Sleep(time.Millisecond * 20)
+		SetSpeed(0)
+		}
 	return 1
 }
 
@@ -67,7 +71,6 @@ func SetDoorOpenLamp(i int) {
 }
 
 func GetButtonSignal(dir int, floor int) int {
-	// Need error handling before proceeding$
 	if Read_bit(buttonChannelMatrix[floor][dir]) {
 		return 1
 	} else {
@@ -91,24 +94,11 @@ func SetSpeed(speed int) {
 }
 
 func SetButtonLamp(dir int, floor int, val int) {
-	/*if floor >= 0 && floor < N_FLOORS {
-	if dir == "up" && floor == 3 {
-		fmt.Printf("The current direction and floor does not exist (up and 4)")
-		return
-	}
-	if dir == "down" && floor == 0 {
-		fmt.Printf("The current direction and floor does not exist (down and 0)")
-		return
-	}*/
 	if val == 1 {
 		Set_bit(lampChannelMatrix[floor][dir])
 	} else {
 		Clear_bit(lampChannelMatrix[floor][dir])
 	}
-	/*} else {
-		fmt.Printf("Floor and direction is out of bounds")
-		return
-	}*/
 }
 
 func GetObstructionSignal() bool {
@@ -155,20 +145,3 @@ func SetLightFloorIndicator(floor int) {
 	}
 }
 
-/*
-func ClearAllLights() {
-	fmt.Printf("All lights cleared")
-	SetDoorOpenLamp(0)
-	SetStopLamp(0)
-	for i := 0; i < elevtypes.N_FLOORS; i++ {
-
-		if i > 0 {
-			SetButtonLamp(1, i, 0)
-		}
-		if i < elevtypes.N_FLOORS-1 {
-			SetButtonLamp(0, i, 0)
-		}
-	SetButtonLamp(2, i, 0)
-	}
-}
-*/

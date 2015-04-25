@@ -11,27 +11,26 @@ import (
 
 )
 
-func SendStatus(status_send_chan <-chan elevtypes.Status) {
+func SendElevatorStatus(elevator_status_send_chan <-chan elevtypes.ElevatorStatus) {
 	baddr, err_conv_ip := net.ResolveUDPAddr("udp", "129.241.187.255:20020")
 	if err_conv_ip != nil {
 		fmt.Println("error:", err_conv_ip)
 	}
-	status_sender, err_dialudp := net.DialUDP("udp", nil, baddr)
+	elevator_status_sender, err_dialudp := net.DialUDP("udp", nil, baddr)
 	if err_dialudp != nil {
 		fmt.Println("error:", err_dialudp)
 	}
 	for {
 		select {
-		case status := <-status_send_chan:
-			b, err_Json := json.Marshal(status)
+		case elevatorStatus := <-elevator_status_send_chan:
+			b, err_Json := json.Marshal(elevatorStatus)
 			if err_Json != nil {
 				fmt.Println("error with JSON")
 				fmt.Println(err_Json)
 			}
 
 			for i := 0; i < 4; i++ {
-				//_, err1 := status_sender.Write(append([]byte("random ass junk"), b[0:]...))
-				_, err1 := status_sender.Write(b)
+				_, err1 := elevator_status_sender.Write(b)
 				if err1 != nil {
 					fmt.Println("Error writing data to server. Waiting for 10 seconds before sending again.")
 					time.Sleep(10 * time.Second)
@@ -43,33 +42,27 @@ func SendStatus(status_send_chan <-chan elevtypes.Status) {
 	}
 }
 
-func ReadStatus(statusmap_send_chan chan<- map[string]elevtypes.Status, netIsAlive chan<- bool, orders_from_unresponsive_elev_chan chan<- [elevtypes.N_FLOORS][elevtypes.N_BUTTONS]int) {
-	var statusMap map[string]elevtypes.Status
-	statusMap = make(map[string]elevtypes.Status)
+func ReadElevatorStatus(elevator_status_map_send_chan chan<- map[string]elevtypes.ElevatorStatus, orders_from_unresponsive_elev_chan chan<- [elevtypes.N_FLOORS][elevtypes.N_BUTTONS]int) {
+	var elevatorStatusMap map[string]elevtypes.ElevatorStatus
+	elevatorStatusMap = make(map[string]elevtypes.ElevatorStatus)
 	var respondingElevatorList []string 
-	var msg elevtypes.Status
+	var msg elevtypes.ElevatorStatus
 	laddr, err_conv_ip_listen := net.ResolveUDPAddr("udp", ":20020")
-	//addr, err := net.ResolveUDPAddr("udp", getIP()+NetworkPort
-	/*if err_ != nil {
-		fmt.Println("error:", err)
-		netIsAlive <- false
-		return
-	}*/
 	if err_conv_ip_listen != nil {
 		fmt.Println("error:", err_conv_ip_listen)
-		netIsAlive <- false
 		return
 	}
-	status_receiver, err_listen := net.ListenUDP("udp", laddr)
+	elevator_status_receiver, err_listen := net.ListenUDP("udp", laddr)
 	if err_listen != nil {
 		fmt.Println("error:", err_listen)
-		netIsAlive <- false
 		return
 	}
+
+	//Read elevator status from network and place in elevatorStatusMap
 	go func() {
 		for {
 			b := make([]byte, 1024)
-			n, raddr, err_read := status_receiver.ReadFromUDP(b)
+			n, raddr, err_read := elevator_status_receiver.ReadFromUDP(b)
 			
 			if err_read != nil {
 				fmt.Println("Error reading from UDP")
@@ -78,33 +71,30 @@ func ReadStatus(statusmap_send_chan chan<- map[string]elevtypes.Status, netIsAli
 				if err_decoding != nil {
 					fmt.Println("Error decoding client msg")
 				} else {
-					statusMap[raddr.String()] = msg
+					elevatorStatusMap[raddr.String()] = msg
 					includeElevator(&respondingElevatorList, raddr.String() )
-					statusmap_send_chan <- statusMap
-					/*for key, _ := range statusMap {
-						fmt.Printf(" \nIP: %s  \n", key)
-						PrintMatrix(statusMap[key].OrderMatrix)
-					}*/
+					elevator_status_map_send_chan <- elevatorStatusMap
 				}
 			}
 			
 		}
 	}()
+	
+	//Check for nonresponding elevators
 	go func() {
-		var OutDatedStatusMap map[string]elevtypes.Status
-		OutDatedStatusMap = make(map[string]elevtypes.Status)
+		var OutDatedElevatorStatusMap map[string]elevtypes.ElevatorStatus
+		OutDatedElevatorStatusMap = make(map[string]elevtypes.ElevatorStatus)
 		for {
 			respondingElevatorList = respondingElevatorList[:0]
 			time.Sleep(1 * time.Second)
-			for key, _ := range statusMap {
+			for key, _ := range elevatorStatusMap {
 				if !isInList(respondingElevatorList, key) {
-					//PrintMatrix(statusMap[key].OrderMatrix)					
-					for key, v := range statusMap {
-						OutDatedStatusMap[key] = v 
+					for key, v := range elevatorStatusMap {
+						OutDatedElevatorStatusMap[key] = v 
 					}
-					delete(statusMap, key)
-					if IsLowestIP(respondingElevatorList, key) {
-						orders_from_unresponsive_elev_chan <- OutDatedStatusMap[key].OrderMatrix
+					delete(elevatorStatusMap, key)
+					if IsLowestIP(respondingElevatorList) {
+						orders_from_unresponsive_elev_chan <- OutDatedElevatorStatusMap[key].OrderMatrix
 												
 						
 					}				
@@ -114,7 +104,7 @@ func ReadStatus(statusmap_send_chan chan<- map[string]elevtypes.Status, netIsAli
 	}()
 }
 
-func IsLowestIP(respondingElevatorList []string, nonRespondingIP string) bool {
+func IsLowestIP(respondingElevatorList []string) bool {
 	lowestIP := 1000
 	localIP := strings.Split(GetIP(), ".")
 	for i,_ := range respondingElevatorList {
@@ -127,12 +117,7 @@ func IsLowestIP(respondingElevatorList []string, nonRespondingIP string) bool {
 		if compare < lowestIP {
 			lowestIP = compare
 		}
-/*		if curIP[3] < lowestIP {
-			lowestIP = curIP[3]
-		}
-		fmt.Println("Current IP: ", curIP[3])*/
-	}
-	//fmt.Println("Lowest IP: ", lowestIP)
+
 	ownIP, err2 := strconv.Atoi(localIP[3])
 	if err2 != nil {
 			fmt.Println(err2)

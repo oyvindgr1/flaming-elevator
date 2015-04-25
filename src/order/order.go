@@ -7,21 +7,16 @@ import (
 	"network"
 	"strings"
 	"time"
-//	"os/exec"
 )
 
-/*type Order_struct struct{
-	IP string
-	Orders map[string][N_FLOORS][N_BUTTON]bool
-
-} */
-//, reset_button chan Order, reset_all chan bool
 var orderMatrix [elevtypes.N_FLOORS][elevtypes.N_BUTTONS]int
-var unprocessedOrdersMatrix [elevtypes.N_FLOORS][elevtypes.N_BUTTONS - 1]int
+var unassignedOrdersMatrix [elevtypes.N_FLOORS][elevtypes.N_BUTTONS - 1]int
 
-func OrderListener(orders_local_elevator_chan chan<- [elevtypes.N_FLOORS][elevtypes.N_BUTTONS]int, orders_external_elevator_chan chan<- [elevtypes.N_FLOORS][elevtypes.N_BUTTONS - 1]int) {
+func LocalOrderListener(orders_local_elevator_chan chan<- [elevtypes.N_FLOORS][elevtypes.N_BUTTONS]int, orders_external_elevator_chan chan<- [elevtypes.N_FLOORS][elevtypes.N_BUTTONS - 1]int) {
 	var ButtonMatrix [elevtypes.N_FLOORS][elevtypes.N_BUTTONS]int
-	InitMatrix(&ButtonMatrix)
+	InitOrderMatrix(&ButtonMatrix)
+	InitOrderMatrix(&orderMatrix)
+	InitUnassignedOrdersMatrix(&unassignedOrdersMatrix)
 	go func() {
 		for {
 			time.Sleep(15 * time.Millisecond)
@@ -35,76 +30,68 @@ func OrderListener(orders_local_elevator_chan chan<- [elevtypes.N_FLOORS][elevty
 							orderMatrix[i][j] = 1
 							orders_local_elevator_chan <- orderMatrix
 						} else {
-							unprocessedOrdersMatrix[i][j] = 1
-							orders_external_elevator_chan <- unprocessedOrdersMatrix
+							unassignedOrdersMatrix[i][j] = 1
+							orders_external_elevator_chan <- unassignedOrdersMatrix
 						}
 					}
 				}
 			}
-			//fmt.Println("\norderMatrix local order module: ")
-			//PrintMatrix(orderMatrix)
-			//PrintUnprocessedOrdersMatrix(unprocessedOrdersMatrix)
 		}
 	}()
 }
 
-func OrdersFromNetwork(orders_local_elevator_chan chan<- [elevtypes.N_FLOORS][elevtypes.N_BUTTONS]int, statusmap_send_chan <-chan map[string]elevtypes.Status, orders_external_elevator_chan chan<- [elevtypes.N_FLOORS][elevtypes.N_BUTTONS - 1]int, orders_from_unresponsive_elev_chan <-chan [elevtypes.N_FLOORS][elevtypes.N_BUTTONS]int) {
-	var statusMap map[string]elevtypes.Status
-	statusMap = make(map[string]elevtypes.Status)
-	var prevStatusMap map[string]elevtypes.Status
-	prevStatusMap = make(map[string]elevtypes.Status)
+func OrdersFromNetworkListener(orders_local_elevator_chan chan<- [elevtypes.N_FLOORS][elevtypes.N_BUTTONS]int, elevator_status_map_send_chan <-chan map[string]elevtypes.ElevatorStatus, orders_external_elevator_chan chan<- [elevtypes.N_FLOORS][elevtypes.N_BUTTONS - 1]int, orders_from_unresponsive_elev_chan <-chan [elevtypes.N_FLOORS][elevtypes.N_BUTTONS]int) {
+	var elevatorStatusMap map[string]elevtypes.ElevatorStatus
+	elevatorStatusMap = make(map[string]elevtypes.ElevatorStatus)
+	var prevElevatorStatusMap map[string]elevtypes.ElevatorStatus
+	prevElevatorStatusMap = make(map[string]elevtypes.ElevatorStatus)
 	printCounter := 0
 	for {
-		setLights(statusMap)
-		for key, v := range statusMap {
-			prevStatusMap[key] = v
-			
+		setLights(elevatorStatusMap)
+		for key, v := range elevatorStatusMap {
+			prevElevatorStatusMap[key] = v	
 		}
-		//PrintMatrix(orderMatrix)
 		select {
-		case statusMap = <-statusmap_send_chan:
-			for key2, _ := range statusMap {
-				//PrintUnprocessedOrdersMatrix(statusMap[key2].UnprocessedOrdersMatrix)
-				if !unprocessedOrdersMatrixIsEmpty(statusMap[key2].UnprocessedOrdersMatrix) {
-					costFunction(orders_local_elevator_chan, statusMap)
-					checkUnprocessedMatrix(statusMap, orders_external_elevator_chan)
-					//PrintUnprocessedOrdersMatrix(statusMap[key2].UnprocessedOrdersMatrix)
+		case elevatorStatusMap = <-elevator_status_map_send_chan:
+			for key2, _ := range elevatorStatusMap {
+				if !unassignedOrdersMatrixIsEmpty(elevatorStatusMap[key2].UnassignedOrdersMatrix) {
+					costFunction(orders_local_elevator_chan, elevatorStatusMap)
+					confirmOrderAssignment(elevatorStatusMap, orders_external_elevator_chan)
 				}
 			}
-			for key3, _ := range statusMap {
-				if !orderMatricesEqual(statusMap[key3].OrderMatrix, prevStatusMap[key3].OrderMatrix) || statusMap[key3].CurFloor != prevStatusMap[key3].CurFloor {
+			for key3, _ := range elevatorStatusMap {
+				if !orderMatricesEqual(elevatorStatusMap[key3].OrderMatrix, prevElevatorStatusMap[key3].OrderMatrix) || elevatorStatusMap[key3].CurFloor != prevElevatorStatusMap[key3].CurFloor {
 					fmt.Printf("Printnumber: %d \n", printCounter)
-					printStatusMap(statusMap)
+					printStatusMap(elevatorStatusMap)
 					printCounter = printCounter +1
 				}
 			}
 		case newOrderMatrix := <-orders_from_unresponsive_elev_chan:
 			time.Sleep(1 * time.Second)
 			addOrdersToUnprocessedMatrix(newOrderMatrix)
-			orders_external_elevator_chan <- unprocessedOrdersMatrix
-			//PrintUnprocessedOrdersMatrix(unprocessedOrdersMatrix)
+			orders_external_elevator_chan <- unassignedOrdersMatrix
 		}
 	}
 }
 
-func printStatusMap(statusMap map[string]elevtypes.Status) {
-	for range statusMap {
+func printStatusMap(elevatorStatusMap map[string]elevtypes.ElevatorStatus) {
+	for range elevatorStatusMap {
 		fmt.Printf("----------------------------------------")
 	}
 	fmt.Printf("\n")
-	for key, _ := range statusMap {
+	for key, _ := range elevatorStatusMap {
 		fmt.Printf("IP: %s \t\t\t ", key)
 	}
 	fmt.Printf("\n\n")
-	for  range statusMap {
+	for  range elevatorStatusMap {
 		fmt.Printf("Floor     UP   DOWN   INTERNAL  \t\t ")
 	}
 	
 	fmt.Printf("\n\n")
 	for i := 0; i < elevtypes.N_FLOORS; i++ {
-		for key2, _ := range statusMap {
-			fmt.Printf(" %d \t %d \t %d \t %d   \t", i +1, statusMap[key2].OrderMatrix[i][0], statusMap[key2].OrderMatrix[i][1], statusMap[key2].OrderMatrix[i][2])
-			if statusMap[key2].CurFloor == i {
+		for key2, _ := range elevatorStatusMap {
+			fmt.Printf(" %d \t %d \t %d \t %d   \t", i +1, elevatorStatusMap[key2].OrderMatrix[i][0], elevatorStatusMap[key2].OrderMatrix[i][1], elevatorStatusMap[key2].OrderMatrix[i][2])
+			if elevatorStatusMap[key2].CurFloor == i {
 				fmt.Printf("   [] ")
 			} else{
 				fmt.Printf("   -  ")
@@ -113,58 +100,17 @@ func printStatusMap(statusMap map[string]elevtypes.Status) {
 		}
 		fmt.Printf("\n")
 	}
-	for key2, _ := range statusMap {
-		fmt.Printf("ServeDirection: %d \t\t\t\t\t\t", statusMap[key2].ServeDirection)
+	for key2, _ := range elevatorStatusMap {
+		fmt.Printf("ServeDirection: %d \t\t\t\t\t\t", elevatorStatusMap[key2].ServeDirection)
 	}
 	fmt.Printf("\n")
-	for key2, _ := range statusMap {
-		fmt.Printf("WorkLoad:       %d \t\t\t\t\t\t", statusMap[key2].WorkLoad)
+	for key2, _ := range elevatorStatusMap {
+		fmt.Printf("WorkLoad:       %d \t\t\t\t\t\t", elevatorStatusMap[key2].WorkLoad)
 	}
 	fmt.Printf("\n\n\n")
 }
 
-func checkUnprocessedMatrix(statusMap map[string]elevtypes.Status, orders_external_elevator_chan chan<- [elevtypes.N_FLOORS][elevtypes.N_BUTTONS - 1]int) {
-	for key, _ := range statusMap {
-		for i := 0; i < elevtypes.N_FLOORS; i++ {
-			for j := 0; j < elevtypes.N_BUTTONS-1; j++ {
-				if unprocessedOrdersMatrix[i][j] == statusMap[key].OrderMatrix[i][j] {
-					unprocessedOrdersMatrix[i][j] = 0
-					orders_external_elevator_chan <- unprocessedOrdersMatrix
-				}
-			}
-		}
-	}
-}
-
-func ErrorRecovery() {
-	for {
-		prevOrderMatrix := orderMatrix
-		time.Sleep(10 * time.Second)
-		if !orderMatrixIsEmpty(orderMatrix) && orderMatricesEqual(orderMatrix, prevOrderMatrix) {
-			fmt.Println("Hiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii")
-			driver.Init()
-		}
-	}
-}
-
-/*
-
-cmd := exec.Command("gnome-terminal", "-x", "sh", "-c", "go run main.go")
-			err1 := cmd.Run()
-			if err1 != nil {
-				fmt.Println("Error with spawning backup: ", err1)
-				return
-			}
-			cmd2 := exec.Command("gnome-terminal", "-x", "sh", "-c", "^C")
-			err2 := cmd2.Run()
-			if err2 != nil {
-				fmt.Println("Error with spawning backup: ", err2)
-				return
-				
-				*/
-
-func costFunction(orders_local_elevator_chan chan<- [elevtypes.N_FLOORS][elevtypes.N_BUTTONS]int, statusMap map[string]elevtypes.Status) {
-	//fmt.Println("In Costfunction.")
+func costFunction(orders_local_elevator_chan chan<- [elevtypes.N_FLOORS][elevtypes.N_BUTTONS]int, elevatorStatusMap map[string]elevtypes.ElevatorStatus) {
 	var orderFloor int
 	var orderType int
 	var penaltyMap map[string]int
@@ -172,20 +118,19 @@ func costFunction(orders_local_elevator_chan chan<- [elevtypes.N_FLOORS][elevtyp
 	var lowestPenalty int
 	var lowestPenaltyIP string
 	var equalPenaltyList []string
-	for key, _ := range statusMap {
+	for key, _ := range elevatorStatusMap {
 		for x := 0; x < elevtypes.N_FLOORS; x++ {
 			for y := 0; y < elevtypes.N_BUTTONS-1; y++ {
-				if statusMap[key].UnprocessedOrdersMatrix[x][y] == 1 {
+				if elevatorStatusMap[key].UnassignedOrdersMatrix[x][y] == 1 {
 					orderFloor = x
 					orderType = y
 				}
 			}
 		}
-		//fmt.Printf("IP1 : %s, \n", key)
 	}
-	for key, _ := range statusMap {
-		penaltyMap[key] = AbsoluteValue(orderFloor - statusMap[key].CurFloor + statusMap[key].WorkLoad)
-		if orderType != statusMap[key].ServeDirection {
+	for key, _ := range elevatorStatusMap {
+		penaltyMap[key] = AbsoluteValue(orderFloor - elevatorStatusMap[key].CurFloor + elevatorStatusMap[key].WorkLoad)
+		if orderType != elevatorStatusMap[key].ServeDirection {
 			penaltyMap[key] = penaltyMap[key] + 4 
 		}
 	}
@@ -194,7 +139,6 @@ func costFunction(orders_local_elevator_chan chan<- [elevtypes.N_FLOORS][elevtyp
 		if penaltyMap[key] < lowestPenalty {
 			lowestPenalty = penaltyMap[key]
 			lowestPenaltyIP = key
-			//fmt.Println("Penalty: ", lowestPenalty)
 		}
 	}
 	for key, _ := range penaltyMap {
@@ -217,11 +161,34 @@ func costFunction(orders_local_elevator_chan chan<- [elevtypes.N_FLOORS][elevtyp
 	}
 }
 
+func confirmOrderAssignment(elevatorStatusMap map[string]elevtypes.ElevatorStatus, orders_external_elevator_chan chan<- [elevtypes.N_FLOORS][elevtypes.N_BUTTONS - 1]int) {
+	for key, _ := range elevatorStatusMap {
+		for i := 0; i < elevtypes.N_FLOORS; i++ {
+			for j := 0; j < elevtypes.N_BUTTONS-1; j++ {
+				if unassignedOrdersMatrix[i][j] == elevatorStatusMap[key].OrderMatrix[i][j] {
+					unassignedOrdersMatrix[i][j] = 0
+					orders_external_elevator_chan <- unassignedOrdersMatrix
+				}
+			}
+		}
+	}
+}
+
+func ErrorRecovery() {
+	for {
+		prevOrderMatrix := orderMatrix
+		time.Sleep(10 * time.Second)
+		if !orderMatrixIsEmpty(orderMatrix) && orderMatricesEqual(orderMatrix, prevOrderMatrix) {
+			driver.Init()
+		}
+	}
+}
+
 func addOrdersToUnprocessedMatrix(newOrderMatrix [elevtypes.N_FLOORS][elevtypes.N_BUTTONS]int) {
 	for x := 0; x < elevtypes.N_FLOORS; x++ {
 		for y := 0; y < elevtypes.N_BUTTONS-1; y++ {
 			if newOrderMatrix[x][y] == 1 {
-				unprocessedOrdersMatrix[x][y] = 1
+				unassignedOrdersMatrix[x][y] = 1
 			}
 		}
 	}
@@ -246,7 +213,7 @@ func orderMatricesEqual(orderMatrix [elevtypes.N_FLOORS][elevtypes.N_BUTTONS]int
 	return true
 }
 
-func unprocessedOrdersMatrixIsEmpty(matrix [elevtypes.N_FLOORS][elevtypes.N_BUTTONS - 1]int) bool {
+func unassignedOrdersMatrixIsEmpty(matrix [elevtypes.N_FLOORS][elevtypes.N_BUTTONS - 1]int) bool {
 	for x := 0; x < elevtypes.N_FLOORS; x++ {
 		for y := 0; y < elevtypes.N_BUTTONS-1; y++ {
 			if matrix[x][y] == 1 {
@@ -256,6 +223,7 @@ func unprocessedOrdersMatrixIsEmpty(matrix [elevtypes.N_FLOORS][elevtypes.N_BUTT
 	}
 	return true
 }
+
 func orderMatrixIsEmpty(matrix [elevtypes.N_FLOORS][elevtypes.N_BUTTONS]int) bool {
 	for x := 0; x < elevtypes.N_FLOORS; x++ {
 		for y := 0; y < elevtypes.N_BUTTONS; y++ {
@@ -272,13 +240,7 @@ func DeleteOrder(floor int, orderType int, orders_local_elevator_chan chan<- [el
 	orders_local_elevator_chan <- orderMatrix
 }
 
-func InitMatrix(matrix *[elevtypes.N_FLOORS][elevtypes.N_BUTTONS]int) {
-	for x := 0; x < elevtypes.N_FLOORS; x++ {
-		for y := 0; y < elevtypes.N_BUTTONS; y++ {
-			matrix[x][y] = 0
-		}
-	}
-}
+
 func PrintMatrix(matrix [elevtypes.N_FLOORS][elevtypes.N_BUTTONS]int) {
 	fmt.Println("\nFloor \t UP \t DOWN \t INTERNAL")
 	for i := 0; i < elevtypes.N_FLOORS; i++ {
@@ -289,7 +251,7 @@ func PrintMatrix(matrix [elevtypes.N_FLOORS][elevtypes.N_BUTTONS]int) {
 	}
 }
 
-func PrintUnprocessedOrdersMatrix(matrix [elevtypes.N_FLOORS][elevtypes.N_BUTTONS - 1]int) {
+func PrintUnassignedOrdersMatrix(matrix [elevtypes.N_FLOORS][elevtypes.N_BUTTONS - 1]int) {
 	fmt.Println("\nFloor \t UP \t DOWN \t INTERNAL")
 	for i := 0; i < elevtypes.N_FLOORS; i++ {
 		fmt.Printf("\n %d \t", i+1)
@@ -299,12 +261,12 @@ func PrintUnprocessedOrdersMatrix(matrix [elevtypes.N_FLOORS][elevtypes.N_BUTTON
 	}
 }
 
-func setLights(statusMap map[string]elevtypes.Status) {
+func setLights(elevatorStatusMap map[string]elevtypes.ElevatorStatus) {
 	for i := 0; i < elevtypes.N_FLOORS; i++ {
 		for j := 0; j < elevtypes.N_BUTTONS -1; j++ {
 			lightOn := 0
-			for key, _ := range statusMap {
-				if statusMap[key].OrderMatrix[i][j] == 1 {
+			for key, _ := range elevatorStatusMap {
+				if elevatorStatusMap[key].OrderMatrix[i][j] == 1 {
 					lightOn = 1
 				} 		
 			}
@@ -317,6 +279,21 @@ func setLights(statusMap map[string]elevtypes.Status) {
 			driver.SetButtonLamp(2, i, 1)
 		} else{
 			driver.SetButtonLamp(2, i, 0)
+		}
+	}
+}
+func InitOrderMatrix(matrix *[elevtypes.N_FLOORS][elevtypes.N_BUTTONS]int) {
+	for x := 0; x < elevtypes.N_FLOORS; x++ {
+		for y := 0; y < elevtypes.N_BUTTONS; y++ {
+			matrix[x][y] = 0
+		}
+	}
+}
+
+func InitUnassignedOrdersMatrix(matrix *[elevtypes.N_FLOORS][elevtypes.N_BUTTONS - 1]int) {
+	for x := 0; x < elevtypes.N_FLOORS; x++ {
+		for y := 0; y < elevtypes.N_BUTTONS-1; y++ {
+			matrix[x][y] = 0
 		}
 	}
 }

@@ -16,10 +16,11 @@ const (
 	OPEN
 )
 
+//Controls the local elevator. Updates elevator status and sends it to network module. 
 func LocalElevatorController(orders_local_elevator_chan chan [elevtypes.N_FLOORS][elevtypes.N_BUTTONS]int, orders_external_elevator_chan <-chan [elevtypes.N_FLOORS][elevtypes.N_BUTTONS - 1]int, elevator_status_update_chan chan<- elevtypes.ElevatorStatus) {
 	var elevatorStatus elevtypes.ElevatorStatus
 	var orderMatrix [elevtypes.N_FLOORS][elevtypes.N_BUTTONS]int
-	var unprocessedOrdersMatrix [elevtypes.N_FLOORS][elevtypes.N_BUTTONS - 1]int
+	var unassignedOrdersMatrix [elevtypes.N_FLOORS][elevtypes.N_BUTTONS - 1]int
 	var state State_enum
 	var floor int
 	var serveDirection int
@@ -27,7 +28,7 @@ func LocalElevatorController(orders_local_elevator_chan chan [elevtypes.N_FLOORS
 	state = WAIT
 	go order.ErrorRecovery()
 	order.InitOrderMatrix(&orderMatrix)
-	order.InitUnprocessedOrdersMatrix(&unprocessedOrdersMatrix)
+	order.InitUnassignedOrdersMatrix(&unassignedOrdersMatrix)
 
 	//Receive Orders and update elevatorStatus
 	go func() {
@@ -36,8 +37,8 @@ func LocalElevatorController(orders_local_elevator_chan chan [elevtypes.N_FLOORS
 			case orderMatrix := <-orders_local_elevator_chan:
 				elevatorStatus.OrderMatrix = orderMatrix
 				elevatorStatus.WorkLoad = sumOfOrders(orderMatrix)
-			case unprocessedOrdersMatrix := <-orders_external_elevator_chan:
-				elevatorStatus.UnprocessedOrdersMatrix = unprocessedOrdersMatrix
+			case unassignedOrdersMatrix := <-orders_external_elevator_chan:
+				elevatorStatus.UnassignedOrdersMatrix = unassignedOrdersMatrix
 			}
 		}
 	}()

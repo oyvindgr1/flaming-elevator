@@ -80,7 +80,7 @@ func OrdersFromNetworkListener(orders_local_elevator_chan chan<- [elevtypes.N_FL
 	//Set the Order button lights and internal lights, locally, as the Status map has been received from the network
 	go func() {
 		for {
-			time.Sleep(50 * time.Millisecond)
+			time.Sleep(10 * time.Millisecond)
 			setLights(elevatorStatusMap)
 		}
 	}()
@@ -126,7 +126,7 @@ func printStatusMap(elevatorStatusMap map[string]elevtypes.ElevatorStatus) {
 	}
 	for _, key2 := range keys {
 		if elevatorStatusMap[key2].ServeDirection == 0 {
-			fmt.Printf("ServeDirection:  UP     \t\t\t\t")
+			fmt.Printf("ServeDirection:  UP     \t\t\t")
 		}else if elevatorStatusMap[key2].ServeDirection == 1 {
 			fmt.Printf("ServeDirection: DOWN    \t\t\t")
 		}else {

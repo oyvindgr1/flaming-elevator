@@ -13,6 +13,7 @@ import (
 var orderMatrix [elevtypes.N_FLOORS][elevtypes.N_BUTTONS]int
 var unassignedOrdersMatrix [elevtypes.N_FLOORS][elevtypes.N_BUTTONS - 1]int
 
+//Listen to local order buttons 
 func LocalOrderListener(orders_local_elevator_chan chan<- [elevtypes.N_FLOORS][elevtypes.N_BUTTONS]int, orders_external_elevator_chan chan<- [elevtypes.N_FLOORS][elevtypes.N_BUTTONS - 1]int) {
 	var ButtonMatrix [elevtypes.N_FLOORS][elevtypes.N_BUTTONS]int
 	InitOrderMatrix(&ButtonMatrix)
@@ -41,6 +42,7 @@ func LocalOrderListener(orders_local_elevator_chan chan<- [elevtypes.N_FLOORS][e
 	}()
 }
 
+//Listen to orders from network and set lights
 func OrdersFromNetworkListener(orders_local_elevator_chan chan<- [elevtypes.N_FLOORS][elevtypes.N_BUTTONS]int, elevator_status_map_send_chan <-chan map[string]elevtypes.ElevatorStatus, orders_external_elevator_chan chan<- [elevtypes.N_FLOORS][elevtypes.N_BUTTONS - 1]int, orders_from_unresponsive_elev_chan <-chan [elevtypes.N_FLOORS][elevtypes.N_BUTTONS]int) {
 	var elevatorStatusMap map[string]elevtypes.ElevatorStatus
 	elevatorStatusMap = make(map[string]elevtypes.ElevatorStatus)
@@ -80,14 +82,13 @@ func OrdersFromNetworkListener(orders_local_elevator_chan chan<- [elevtypes.N_FL
 	//Set the Order button lights and internal lights, locally, as the Status map has been received from the network
 	go func() {
 		for {
-			time.Sleep(50 * time.Millisecond)
+			time.Sleep(10 * time.Millisecond)
 			setLights(elevatorStatusMap)
 		}
 	}()
 }
 
 func printStatusMap(elevatorStatusMap map[string]elevtypes.ElevatorStatus) {
-	
 	
 	var keys []string
 	for k := range elevatorStatusMap {
@@ -140,6 +141,7 @@ func printStatusMap(elevatorStatusMap map[string]elevtypes.ElevatorStatus) {
 	fmt.Printf("\n\n\n")
 }
 
+//An external order arrives from network. Evaluate cost. Decide if this elevator should take it or not.  
 func costFunction(orders_local_elevator_chan chan<- [elevtypes.N_FLOORS][elevtypes.N_BUTTONS]int, elevatorStatusMap map[string]elevtypes.ElevatorStatus) {
 	var orderFloor int
 	var orderType int
@@ -191,6 +193,7 @@ func costFunction(orders_local_elevator_chan chan<- [elevtypes.N_FLOORS][elevtyp
 	}
 }
 
+//Confirm that an elevator has taken external orders.
 func confirmOrderAssignment(elevatorStatusMap map[string]elevtypes.ElevatorStatus, orders_external_elevator_chan chan<- [elevtypes.N_FLOORS][elevtypes.N_BUTTONS - 1]int) {
 	for key, _ := range elevatorStatusMap {
 		for i := 0; i < elevtypes.N_FLOORS; i++ {
@@ -204,6 +207,7 @@ func confirmOrderAssignment(elevatorStatusMap map[string]elevtypes.ElevatorStatu
 	}
 }
 
+//In case of emergency; run down to closest floor. New state: open. 
 func ErrorRecovery() {
 	for {
 		prevOrderMatrix := orderMatrix

@@ -16,6 +16,7 @@ const (
 	OPEN
 )
 
+//Controls the local elevator. Updates elevator status and sends it to network module. 
 func LocalElevatorController(orders_local_elevator_chan chan [elevtypes.N_FLOORS][elevtypes.N_BUTTONS]int, orders_external_elevator_chan <-chan [elevtypes.N_FLOORS][elevtypes.N_BUTTONS - 1]int, elevator_status_update_chan chan<- elevtypes.ElevatorStatus) {
 	var elevatorStatus elevtypes.ElevatorStatus
 	var orderMatrix [elevtypes.N_FLOORS][elevtypes.N_BUTTONS]int

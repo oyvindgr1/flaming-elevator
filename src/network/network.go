@@ -11,6 +11,7 @@ import (
 
 )
 
+//Send local elevators status to network. 
 func SendElevatorStatus(elevator_status_send_chan <-chan elevtypes.ElevatorStatus) {
 	baddr, err_conv_ip := net.ResolveUDPAddr("udp", "129.241.187.255:20020")
 	if err_conv_ip != nil {
@@ -42,6 +43,7 @@ func SendElevatorStatus(elevator_status_send_chan <-chan elevtypes.ElevatorStatu
 	}
 }
 
+//Read elevator status from network. Collect in statusMap. 
 func ReadElevatorStatus(elevator_status_map_send_chan chan<- map[string]elevtypes.ElevatorStatus, orders_from_unresponsive_elev_chan chan<- [elevtypes.N_FLOORS][elevtypes.N_BUTTONS]int) {
 	var elevatorStatusMap map[string]elevtypes.ElevatorStatus
 	elevatorStatusMap = make(map[string]elevtypes.ElevatorStatus)
@@ -104,6 +106,7 @@ func ReadElevatorStatus(elevator_status_map_send_chan chan<- map[string]elevtype
 	}()
 }
 
+//Returns true if local IP is lowest in list. 
 func LocalIPIsLowest(respondingElevatorList []string) bool {
 	lowestIP := 1000
 	localIP := strings.Split(GetIP(), ".")

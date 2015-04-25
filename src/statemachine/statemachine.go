@@ -53,7 +53,7 @@ func LocalElevatorController(orders_local_elevator_chan chan [elevtypes.N_FLOORS
 			elevatorStatus.CurFloor = floor
 			elevatorStatus.ServeDirection = serveDirection
 			elevator_status_update_chan <- elevatorStatus
-			time.Sleep(50 * time.Millisecond)
+			time.Sleep(100 * time.Millisecond)
 		}
 	}()
 

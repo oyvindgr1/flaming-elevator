@@ -5,7 +5,6 @@ import (
 	"elevtypes"
 	"order"
 	"time"
-	"fmt"
 )
 
 type State_enum int
@@ -62,7 +61,6 @@ func LocalElevatorController(orders_local_elevator_chan chan [elevtypes.N_FLOORS
 	go func() {
 		for {
 			time.Sleep(10 * time.Millisecond)
-			fmt.Println("\nSTATE: ", state)
 			switch state {
 			case WAIT:
 				wait(elevatorStatus.OrderMatrix, &state, &serveDirection, &runDirection)
